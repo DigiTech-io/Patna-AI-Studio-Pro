@@ -1,8 +1,5 @@
 streamlit
 pillow
 requests
-rembg
-onnxruntime
-replicate
 numpy
 

@@ -1,108 +1,108 @@
+
 import streamlit as st
 import requests
 import io
-import base64
 import time
 import urllib.parse
-from PIL import Image  # ✅ FIXED: Added missing import
+from PIL import Image
 
-# 1. Visibility & UI Fix
-st.set_page_config(page_title="Patna AI Studio Pro", layout="wide", page_icon="🎨")
+# 1. Page Configuration & UI
+st.set_page_config(page_title="Patna AI Studio Pro", layout="wide", page_icon="🏙️")
+
 st.markdown("""
 <style>
     .stApp { background-color: #ffffff !important; }
-    input, textarea { 
-        background-color: #ffffff !important; 
-        color: black !important; 
-        border: 2px solid #007bff !important; 
+    .pro-box {
+        background: #ffffff !important;
+        border: 2px solid #007bff !important;
+        border-radius: 15px !important;
+        padding: 20px !important;
+        margin-bottom: 20px !important;
+        box-shadow: 0 4px 15px rgba(0,123,255,0.1) !important;
+    }
+    input, textarea, [data-baseweb="select"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 2px solid #0056b3 !important;
         font-weight: 600 !important;
-        border-radius: 8px !important;
     }
-    .pro-box { 
-        border: 2px solid #007bff; 
-        padding: 25px; 
-        border-radius: 15px; 
-        background: #ffffff;
-        box-shadow: 0 8px 25px rgba(0,123,255,0.1);
-        margin: 10px 0;
-    }
-    h1, h2, h3, label { color: #1a365d !important; font-weight: 800 !important; }
+    h1, h2, h3, label, p { color: #1a365d !important; font-weight: 800 !important; }
     .stButton > button {
-        background: linear-gradient(45deg, #007bff, #0056b3) !important;
-        color: white !important;
-        border-radius: 25px !important;
-        font-weight: bold !important;
-        height: 3em !important;
+        background: linear-gradient(45deg, #007bff 0%, #0056b3 100%) !important;
+        color: white !important; border-radius: 50px !important; font-weight: bold !important;
     }
+    .price-tag { color: #28a745 !important; font-size: 1.2em; font-weight: bold; }
 </style>
 """, unsafe_allow_html=True)
 
-# 2. Smart Prompt Generator
-def make_pro_prompt(idea):
-    return f"{idea}, ultra realistic, 8k, cinematic lighting, masterpiece, highly detailed, flux style"
-
-# 3. Sidebar (Support: 8210073056)
+# 2. Sidebar (Call & WhatsApp: 8210073056)
 with st.sidebar:
     st.title("🏙️ Patna AI Pro")
-    engine = st.selectbox("🚀 Select AI Engine", 
-                         ["🆓 Pollinations (Unlimited Free)", "💎 Segmind Pro (Backup)"])
-    menu = st.radio("Navigation", ["🎨 Image Studio", "🎥 Video AI", "📱 Reels Magic", "📞 Support"])
+    menu = st.radio("Navigation", ["🎨 Image Studio", "🎥 Video AI", "🚀 Grow Social", "📞 Support"])
     st.markdown("---")
-    st.markdown(f"**📞 Help:** +91 8210073056")
-    st.markdown("[💬 WhatsApp](https://wa.me/918210073056)")
+    st.subheader("📞 Quick Support")
+    st.markdown("[📱 WhatsApp Chat](https://wa.me/918210073056)")
+    st.markdown("📞 **Call: +91 8210073056**")
 
-# 4. MAIN SECTIONS
-if menu == "🎨 Image Studio":
-    st.header("🎨 AI Image Studio")
+# 3. FEATURE: SOCIAL MEDIA PANEL (Subscription & Followers)
+if menu == "🚀 Grow Social":
+    st.header("📈 Social Media Growth Panel")
+    st.info("💡 Real & Active Followers/Subscribers for your brand!")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown('<div class="pro-box">', unsafe_allow_html=True)
+        st.subheader("📸 Instagram Services")
+        st.markdown("* **1K Real Followers**: ₹199")
+        st.markdown("* **5K Premium Followers**: ₹899")
+        st.markdown("**Condition:** 24-48 Hours Delivery | 30 Days Refill Guarantee")
+        if st.button("Order Instagram Pack"):
+            st.success("Redirecting to Admin (8210073056)...")
+            time.sleep(1)
+            st.markdown(f'<meta http-equiv="refresh" content="0;URL=\'https://wa.me/918210073056?text=I want Instagram Followers Pack\'" />', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col2:
+        st.markdown('<div class="pro-box">', unsafe_allow_html=True)
+        st.subheader("📺 YouTube Services")
+        st.markdown("* **1K Subscribers**: ₹1499")
+        st.markdown("* **4000h Watch Time**: ₹2999")
+        st.markdown("**Condition:** Organic Method | Lifetime Support | No Drop")
+        if st.button("Order YouTube Pack"):
+            st.success("Redirecting to Admin (8210073056)...")
+            time.sleep(1)
+            st.markdown(f'<meta http-equiv="refresh" content="0;URL=\'https://wa.me/918210073056?text=I want YouTube Subscribers Pack\'" />', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# 4. FEATURE: IMAGE STUDIO (Dual Engine)
+elif menu == "🎨 Image Studio":
+    st.header("🎨 Ultra HD Image Studio")
+    engine = st.selectbox("🚀 AI Engine", ["🆓 Pollinations (Free)", "💎 Segmind Pro (HQ)"])
     st.markdown('<div class="pro-box">', unsafe_allow_html=True)
-    
-    idea = st.text_input("💡 Apna idea likhein (Hindi/English):", placeholder="Tiger at Patna Zoo...")
-    
-    if st.button("🚀 Ultra HD Generate"):
-        if idea:
-            with st.spinner("🎨 AI is creating your masterpiece..."):
-                try:
-                    pro_prompt = make_pro_prompt(idea)
-                    if "Segmind" in engine and "SEGMIND_API_KEY" in st.secrets:
-                        # ✅ Segmind Logic
-                        res = requests.post(
-                            "https://api.segmind.com/v1/flux-1-dev",
-                            json={"prompt": pro_prompt, "width": 1024, "height": 1024},
-                            headers={"x-api-key": st.secrets["SEGMIND_API_KEY"]}
-                        )
-                        img = Image.open(io.BytesIO(res.content))
-                    else:
-                        # Pollinations
-                        url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(pro_prompt)}?width=1024&height=1024&nologo=true"
-                        res = requests.get(url)
-                        img = Image.open(io.BytesIO(res.content))
-                    
-                    st.image(img, use_container_width=True)
-                    
-                    img_byte = io.BytesIO()
-                    img.save(img_byte, format='PNG')
-                    st.download_button("💾 Save HD Image", img_byte.getvalue(), "patna_ai.png", "image/png")
-                    st.balloons()
-                except Exception as e:
-                    st.error(f"❌ Error: {e}")
+    idea = st.text_input("💡 Idea (Hindi/English):")
+    if st.button("🚀 Create Image"):
+        with st.spinner("Creating..."):
+            try:
+                # Prompt Enhancement
+                final_p = f"{idea}, ultra-realistic 8k, flux style"
+                if "Segmind" in engine and "SEGMIND_API_KEY" in st.secrets:
+                    res = requests.post("https://api.segmind.com/v1/flux-1-dev", 
+                                        json={"prompt": final_p, "width": 1024, "height": 1024}, 
+                                        headers={"x-api-key": st.secrets["SEGMIND_API_KEY"]})
+                else:
+                    res = requests.get(f"https://image.pollinations.ai/prompt/{urllib.parse.quote(final_p)}?nologo=true")
+                st.image(res.content, use_container_width=True)
+                st.download_button("💾 Save Art", res.content, "patna_ai.png", "image/png")
+            except Exception as e: st.error(f"Error: {e}")
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif menu == "🎥 Video AI":
-    st.header("🎬 AI Animation Studio")
-    st.info("💡 Hint: Moving images/GIFs ke liye cinematic keywords use karein.")
-    st.markdown('<div class="pro-box">', unsafe_allow_html=True)
-    v_idea = st.text_input("🎥 Video description:")
-    if st.button("🎬 Generate Animation"):
-        if v_idea:
-            # High speed animation workaround
-            gif_url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(v_idea + ', animated motion')}?nologo=true&seed={int(time.time())}"
-            st.image(gif_url, caption="Cinematic Animation Ready")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.header("🎬 Video Studio")
+    st.info("Fast AI Animations are active!")
 
 elif menu == "📞 Support":
-    st.success("👨‍💼 **Chaman Jha - Patna AI Studio**")
-    st.info("WhatsApp/Call: +91 8210073056")
+    st.info("Owner: Chaman Jha | WhatsApp: +91 8210073056")
 
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: #007bff; font-weight: bold;'>✨ Patna AI Studio Pro | 8210073056</p>", unsafe_allow_html=True)
-
+st.markdown("<p style='text-align: center;'>✨ Patna AI Studio Pro v17.0 | Social Media & AI Hub | 8210073056</p>", unsafe_allow_html=True)

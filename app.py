@@ -12,23 +12,22 @@ try:
 except ImportError:
     VIDEO_READY = False
 
-# 1. Page Config
+# Page Config & CSS
 st.set_page_config(page_title="Patna AI Studio Pro", layout="wide", page_icon="🏙️")
 
-# Attractive CSS
 st.markdown("""
 <style>
 .stButton > button {
     width: 100%; border-radius: 25px; 
     background: linear-gradient(45deg, #FF4B2B, #FF416C);
-    color: white; font-weight: bold; font-size: 16px;
-    border: none; height: 3.5em; transition: 0.3s;
+    color: white; font-weight: bold; border: none; height: 3.5em;
+    transition: 0.3s;
 }
 .stButton > button:hover { transform: scale(1.05); }
 </style>
 """, unsafe_allow_html=True)
 
-# 2. Logic Functions
+# Logic Functions
 @st.cache_data(ttl=3600)
 def translate_pro(text):
     try:
@@ -40,13 +39,13 @@ def translate_pro(text):
     except:
         return f"{text}, 8k, masterpiece"
 
-# 3. Session State
+# Session State
 if 'counter' not in st.session_state: 
     st.session_state.counter = 0
 if 'unlocked' not in st.session_state: 
     st.session_state.unlocked = False
 
-# 4. Sidebar (FIXED - Line 72 Error Resolved)
+# Sidebar - ✅ FIXED
 with st.sidebar:
     st.title("🏙️ Patna AI Studio Pro")
     menu = st.radio("🚀 Features", ["🎨 Pro Image Gen", "✂️ BG Remover", "🎥 10s Video AI", "📞 Support"])
@@ -62,11 +61,11 @@ with st.sidebar:
             st.rerun()
     
     st.markdown("---")
-    # ✅ FIXED: Triple quotes multiline string
-    st.info("""Bihar's #1 AI Platform 🚀
-Patna Creators""")
+    st.info("Bihar's #1 AI Platform 🚀
+Patna Creators")  # ✅ Single line with 
 
-# 5. Main App Logic
+
+# Main App Logic
 if st.session_state.counter < 5 or st.session_state.unlocked:
     if menu == "🎨 Pro Image Gen":
         st.header("✨ Cinematic 8K Image Studio")
@@ -86,7 +85,6 @@ if st.session_state.counter < 5 or st.session_state.unlocked:
                     st.image(img, use_container_width=True)
                     st.session_state.counter += 1
                     st.balloons()
-                    st.success("✅ Image Generated! Trials left: 5 - " + str(st.session_state.counter))
 
     elif menu == "✂️ BG Remover":
         st.header("🪄 BG Remover")
@@ -94,9 +92,8 @@ if st.session_state.counter < 5 or st.session_state.unlocked:
         if uploaded and st.button("✂️ Remove Background"):
             if "REMOVE_BG_KEY" not in st.secrets:
                 st.error("❌ API Key Missing! Add REMOVE_BG_KEY in Secrets.toml")
-                st.info("Get free API key: https://remove.bg/api")
             else:
-                with st.spinner("🧹 Cleaning Background..."):
+                with st.spinner("🧹 Cleaning..."):
                     res = requests.post(
                         'https://api.remove.bg/v1.0/removebg',
                         files={'image_file': uploaded.getvalue()},
@@ -104,36 +101,28 @@ if st.session_state.counter < 5 or st.session_state.unlocked:
                         headers={'X-Api-Key': st.secrets["REMOVE_BG_KEY"]}
                     )
                     if res.status_code == 200:
-                        st.image(res.content, caption="✅ Background Removed!")
-                        st.download_button("💾 Download PNG", res.content, "clean_bg.png", "image/png")
+                        st.image(res.content, caption="✅ Clean PNG")
+                        st.download_button("💾 Download", res.content, "no_bg.png")
                     else: 
-                        st.error(f"❌ API Error: {res.status_code}")
+                        st.error("❌ API Error!")
 
     elif menu == "🎥 10s Video AI":
         st.header("🎬 AI Video Studio")
         if VIDEO_READY:
-            st.info("✅ Replicate library detected! Video feature coming soon.")
-            st.code("pip install replicate")
+            st.success("✅ Replicate ready! Video feature coming soon.")
         else:
-            st.warning("⚠️ Install: `pip install replicate` for video generation")
-            st.info("Video feature setup ke liye 'replicate' library install karein.")
+            st.warning("⚠️ `pip install replicate` for video generation")
 
     elif menu == "📞 Support":
         st.header("📱 Support & Contact")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.info("**WhatsApp:**
-+91 7004332903")
-        with col2:
-            st.info("**Email:**
-chamanjha2015@gmail.com")
-        st.markdown("---")
+        # ✅ FIXED Line 125: Separate st.info calls - No triple quotes issue
+        st.info("WhatsApp: +91 7004332903")
+        st.info("Email: chamanjha2015@gmail.com")
         st.success("⭐ Patna AI Studio Pro - Bihar's #1 AI Tool!")
         
 else:
-    st.error("🔒 PRO Unlock Required! Sidebar se unlock karein.")
-    st.balloons()
+    st.error("🔒 PRO Unlock Required!")
 
 # Footer
 st.markdown("---")
-st.markdown("*Made with ❤️ in Patna, Bihar | v2.0*")
+st.markdown("*Made with ❤️ in Patna, Bihar | v3.0*")

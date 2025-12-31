@@ -5,14 +5,14 @@ from PIL import Image
 import time
 import urllib.parse
 
-# Safely import replicate
+# 1. Safely import replicate
 try:
     import replicate
     VIDEO_READY = True
 except ImportError:
     VIDEO_READY = False
 
-# Page Config & CSS
+# 2. Page Config & CSS
 st.set_page_config(page_title="Patna AI Studio Pro", layout="wide", page_icon="🏙️")
 
 st.markdown("""
@@ -27,7 +27,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Logic Functions
+# 3. Logic Functions
 @st.cache_data(ttl=3600)
 def translate_pro(text):
     try:
@@ -39,13 +39,13 @@ def translate_pro(text):
     except:
         return f"{text}, 8k, masterpiece"
 
-# Session State
+# 4. Session State
 if 'counter' not in st.session_state: 
     st.session_state.counter = 0
 if 'unlocked' not in st.session_state: 
     st.session_state.unlocked = False
 
-# Sidebar - ✅ 100% FIXED
+# 5. Sidebar - ✅ INDENTATION FIXED
 with st.sidebar:
     st.title("🏙️ Patna AI Studio Pro")
     menu = st.radio("🚀 Features", ["🎨 Pro Image Gen", "✂️ BG Remover", "🎥 10s Video AI", "📞 Support"])
@@ -61,12 +61,10 @@ with st.sidebar:
             st.rerun()
     
     st.markdown("---")
-    # ✅ SAFE: Single line with 
- escape
-    st.info("Bihar's #1 AI Platform 🚀
-📍 Patna Creators")
+    # ✅ Spacing is now exactly aligned with the radio/metric above
+    st.info("Bihar's #1 AI Platform 🚀 Patna Creators")
 
-# Main App Logic
+# 6. Main App Logic
 if st.session_state.counter < 5 or st.session_state.unlocked:
     if menu == "🎨 Pro Image Gen":
         st.header("✨ Cinematic 8K Image Studio")
@@ -86,15 +84,13 @@ if st.session_state.counter < 5 or st.session_state.unlocked:
                     st.image(img, use_container_width=True)
                     st.session_state.counter += 1
                     st.balloons()
-                    st.success(f"✅ Generated! Trials used: {st.session_state.counter}/5")
 
     elif menu == "✂️ BG Remover":
         st.header("🪄 BG Remover")
         uploaded = st.file_uploader("Upload Image", type=['jpg','png'])
         if uploaded and st.button("✂️ Remove Background"):
             if "REMOVE_BG_KEY" not in st.secrets:
-                st.error("❌ API Key Missing! Add REMOVE_BG_KEY in Secrets.toml")
-                st.info("🔗 Get free key: https://remove.bg/api")
+                st.error("❌ API Key Missing!")
             else:
                 with st.spinner("🧹 Cleaning..."):
                     res = requests.post(
@@ -107,31 +103,25 @@ if st.session_state.counter < 5 or st.session_state.unlocked:
                         st.image(res.content, caption="✅ Clean PNG")
                         st.download_button("💾 Download", res.content, "no_bg.png")
                         st.session_state.counter += 1
-                    else: 
-                        st.error("❌ API Error! Key check karein.")
+                    else: st.error("❌ API Error!")
 
     elif menu == "🎥 10s Video AI":
         st.header("🎬 AI Video Studio")
         if VIDEO_READY:
-            st.info("✅ Replicate library detected!")
-            v_prompt = st.text_input("💡 Video Idea:")
-            if st.button("🎬 Generate 10s Video"):
-                st.warning("🚧 Video feature under development - Coming soon!")
-                # st.session_state.counter += 1  # Uncomment when ready
+            st.info("✅ Replicate ready! Video feature coming soon.")
         else:
-            st.warning("⚠️ Install: `pip install replicate`")
-            st.info("Video feature ready hone ke liye replicate install karein.")
+            st.warning("⚠️ Install: `pip install replicate` in requirements.txt")
 
     elif menu == "📞 Support":
         st.header("📱 Support & Contact")
-        # ✅ FIXED: Separate single-line st.info calls - NO triple quotes
         st.info("📱 WhatsApp: +91 7004332903")
         st.info("✉️ Email: chamanjha2015@gmail.com")
         st.success("⭐ Patna AI Studio Pro - Bihar's #1 AI Tool!")
         
 else:
-    st.error("🔒 PRO Unlock Required! Sidebar unlock button dabayein.")
+    st.error("🔒 PRO Unlock Required!")
 
 # Footer
 st.markdown("---")
-st.markdown("*Made with ❤️ in Patna, Bihar | v4.0 - 100% Bug Free*")
+st.markdown("*Made with ❤️ in Patna, Bihar | v4.0*")
+

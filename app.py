@@ -8,25 +8,38 @@ import urllib.parse
 # 1. Page Configuration
 st.set_page_config(page_title="Patna AI Studio Pro", layout="wide", page_icon="🏙️")
 
-# 2. Neon Glassmorphism UI (Fixed)
+# 2. Universal Visibility UI (Fixed for Light & Dark Mode)
 st.markdown("""
 <style>
-    .main { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white; }
-    [data-testid="stSidebar"] { background-color: rgba(15, 23, 42, 0.95); }
+    /* Main Background Fix */
+    .stApp { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white !important; }
+    
+    /* Box Visibility */
     .pro-box {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(15px);
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 25px;
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        border: 1px solid #4facfe;
+        padding: 20px;
         margin-bottom: 20px;
+        color: white !important;
     }
+    
+    /* Input & Textarea Visibility */
+    input, textarea, [data-baseweb="select"] {
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        color: black !important;
+        border-radius: 10px !important;
+    }
+    
+    /* Labels and Text */
+    label, p, h1, h2, h3 { color: white !important; font-weight: bold; }
+    
+    /* Button Style */
     .stButton > button {
         width: 100%; border-radius: 50px; height: 3.5em;
         background: linear-gradient(45deg, #00f2fe 0%, #4facfe 100%);
-        color: white; font-weight: bold; border: none;
-        box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
+        color: white !important; font-weight: bold; border: none;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -39,15 +52,15 @@ def convert_to_mj_pro(text):
         url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q={encoded}"
         r = requests.get(url, timeout=10).json()
         eng = r[0][0][0]
-        return f"{eng}, hyper-realistic, 8k resolution, cinematic lighting, masterpiece, flux style"
+        return f"{eng}, hyper-realistic, 8k resolution, cinematic lighting, shot on 35mm lens, f/1.8, unreal engine 5, octane render, masterpiece, flux style"
     except Exception:
-        return f"{text}, hyper-realistic, 8k, masterpiece"
+        return f"{text}, hyper-realistic, 8k, cinematic, masterpiece"
 
-# 4. Session State Initialization
+# 4. Session State
 if 'user_name' not in st.session_state: st.session_state.user_name = ""
 if 'magic_p' not in st.session_state: st.session_state.magic_p = ""
 
-# 5. Sidebar (WhatsApp: 8210073056)
+# 5. Sidebar
 with st.sidebar:
     st.title("🏙️ Patna AI Pro")
     if not st.session_state.user_name:
@@ -70,10 +83,11 @@ with st.sidebar:
     st.link_button("📱 WhatsApp", "https://wa.me/918210073056")
     st.link_button("📞 Call Admin", "tel:+918210073056")
 
-# 6. Main Logic (Dual Engine)
+# 6. Main Logic
 if menu == "🎨 Image Studio":
-    st.header(f"✨ {engine} Powered Studio")
+    st.header(f"✨ {engine} Edition")
     
+    # Step 1: Magic Prompt
     st.markdown('<div class="pro-box">', unsafe_allow_html=True)
     st.subheader("🪄 Step 1: Create Pro Prompt")
     user_idea = st.text_input("Hindi/English Idea:", placeholder="Example: Ek tiger Patna zoo mein...", key="user_idea")
@@ -90,6 +104,7 @@ if menu == "🎨 Image Studio":
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
+    # Step 2: Generation
     st.markdown('<div class="pro-box">', unsafe_allow_html=True)
     st.subheader("🖼️ Step 2: Generate HD Art")
     final_prompt = st.text_area("Final Prompt:", value=st.session_state.magic_p, height=100, key="final_prompt")
@@ -108,7 +123,7 @@ if menu == "🎨 Image Studio":
                         res = requests.post(api_url, json=data, headers=headers, timeout=90)
                     else:
                         encoded_p = urllib.parse.quote(final_prompt)
-                        api_url = f"https://image.pollinations.ai/prompt/{encoded_p}?width={w}&height={h}&nologo=true&seed={int(time.time())}"
+                        api_url = f"https://image.pollinations.ai/prompt/{encoded_p}?width={w}&height={h}&nologo=true"
                         res = requests.get(api_url, timeout=60)
                     
                     if res.status_code == 200:
@@ -123,7 +138,6 @@ elif menu == "🎥 Video AI":
     st.header("🎬 Video AI Studio")
     st.info("🔥 **Video Models** - Coming Soon!")
 
-# FIXED SUPPORT SECTION (Syntax Error Solved)
 elif menu == "📞 Support":
     st.header("📱 Patna Local Support")
     col1, col2 = st.columns(2)
@@ -135,7 +149,7 @@ elif menu == "📞 Support":
         st.info("**✉️ Email:** chamanjha2015@gmail.com")
     st.success("🆓 **Unlimited Free Credits** Active!")
 
-# Footer
+# 7. Footer
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: #4facfe;'>✨ Patna AI Studio Pro v8.1 | Bihar's #1 AI Hub</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #4facfe;'>✨ Patna AI Studio Pro v8.2 | Bihar's #1 AI Hub</p>", unsafe_allow_html=True)
 

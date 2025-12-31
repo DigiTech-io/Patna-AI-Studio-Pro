@@ -8,43 +8,52 @@ import urllib.parse
 # 1. Page Configuration
 st.set_page_config(page_title="Patna AI Studio Pro", layout="wide", page_icon="🏙️")
 
-# 2. Universal Visibility UI (Fixed for Light & Dark Mode)
+# 2. 100% Visibility UI Fix (Har Mode mein saaf dikhega)
 st.markdown("""
 <style>
-    /* Main Background Fix */
-    .stApp { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white !important; }
+    /* Background ko hamesha dark blue rakha hai taaki contrast bana rahe */
+    .stApp {
+        background-color: #0e1117 !important;
+    }
     
-    /* Box Visibility */
+    /* Main Content Area ko saaf dikhane ke liye */
+    [data-testid="stVerticalBlock"] > div {
+        color: white !important;
+    }
+
+    /* Input Boxes aur Textarea ko White kar diya hai taaki black text saaf dikhe */
+    input, textarea, [data-baseweb="select"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 2px solid #4facfe !important;
+        border-radius: 10px !important;
+        font-weight: bold !important;
+    }
+
+    /* Pro-box ko thoda solid background diya hai visibility ke liye */
     .pro-box {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.08);
         border-radius: 15px;
         border: 1px solid #4facfe;
         padding: 20px;
         margin-bottom: 20px;
+    }
+
+    /* Titles aur Labels ko Bright White kiya hai */
+    h1, h2, h3, label, p, .stMarkdown {
+        color: #ffffff !important;
+        font-weight: bold !important;
+        text-shadow: 1px 1px 2px black;
+    }
+    
+    /* Sidebar buttons aur text visibility */
+    [data-testid="stSidebar"] * {
         color: white !important;
-    }
-    
-    /* Input & Textarea Visibility */
-    input, textarea, [data-baseweb="select"] {
-        background-color: rgba(255, 255, 255, 0.9) !important;
-        color: black !important;
-        border-radius: 10px !important;
-    }
-    
-    /* Labels and Text */
-    label, p, h1, h2, h3 { color: white !important; font-weight: bold; }
-    
-    /* Button Style */
-    .stButton > button {
-        width: 100%; border-radius: 50px; height: 3.5em;
-        background: linear-gradient(45deg, #00f2fe 0%, #4facfe 100%);
-        color: white !important; font-weight: bold; border: none;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Prompt Magic Converter
+# 3. Prompt Magic Logic
 @st.cache_data(ttl=3600)
 def convert_to_mj_pro(text):
     try:
@@ -52,15 +61,15 @@ def convert_to_mj_pro(text):
         url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q={encoded}"
         r = requests.get(url, timeout=10).json()
         eng = r[0][0][0]
-        return f"{eng}, hyper-realistic, 8k resolution, cinematic lighting, shot on 35mm lens, f/1.8, unreal engine 5, octane render, masterpiece, flux style"
+        return f"{eng}, hyper-realistic, 8k, cinematic lighting, masterpiece, flux style"
     except Exception:
-        return f"{text}, hyper-realistic, 8k, cinematic, masterpiece"
+        return f"{text}, 8k, masterpiece"
 
-# 4. Session State
+# 4. Session State Setup
 if 'user_name' not in st.session_state: st.session_state.user_name = ""
 if 'magic_p' not in st.session_state: st.session_state.magic_p = ""
 
-# 5. Sidebar
+# 5. Sidebar (Dono Engine ke saath)
 with st.sidebar:
     st.title("🏙️ Patna AI Pro")
     if not st.session_state.user_name:
@@ -74,10 +83,7 @@ with st.sidebar:
         st.success(f"👋 Namaste, {st.session_state.user_name}!")
     
     st.markdown("---")
-    st.subheader("🚀 AI Engine")
-    engine = st.selectbox("Choose Engine", ["🆓 Pollinations (Unlimited Free)", "💎 Segmind Pro (High Quality)"], key="engine_select")
-    
-    st.markdown("---")
+    engine = st.selectbox("🚀 AI Engine", ["🆓 Pollinations (Free)", "💎 Segmind Pro (HQ)"], key="engine_select")
     menu = st.radio("Navigation", ["🎨 Image Studio", "🎥 Video AI", "📞 Support"], key="main_menu")
     st.markdown("---")
     st.link_button("📱 WhatsApp", "https://wa.me/918210073056")
@@ -85,13 +91,13 @@ with st.sidebar:
 
 # 6. Main Logic
 if menu == "🎨 Image Studio":
-    st.header(f"✨ {engine} Edition")
+    st.header(f"✨ {engine} Powered")
     
-    # Step 1: Magic Prompt
+    # Step 1: Prompt Converter
     st.markdown('<div class="pro-box">', unsafe_allow_html=True)
-    st.subheader("🪄 Step 1: Create Pro Prompt")
-    user_idea = st.text_input("Hindi/English Idea:", placeholder="Example: Ek tiger Patna zoo mein...", key="user_idea")
-    if st.button("🪄 Convert to Pro Prompt", key="convert_btn"):
+    st.subheader("🪄 Step 1: Pro Prompt")
+    user_idea = st.text_input("Describe your idea:", placeholder="Example: Tiger in Patna...", key="user_idea")
+    if st.button("🪄 Convert", key="convert_btn"):
         if user_idea.strip():
             with st.spinner("🔮 Converting..."):
                 st.session_state.magic_p = convert_to_mj_pro(user_idea)
@@ -99,12 +105,9 @@ if menu == "🎨 Image Studio":
     
     if st.session_state.magic_p:
         st.code(st.session_state.magic_p)
-        if st.button("🔄 Clear", key="clear_btn"):
-            st.session_state.magic_p = ""
-            st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Step 2: Generation
+    # Step 2: Image Generation
     st.markdown('<div class="pro-box">', unsafe_allow_html=True)
     st.subheader("🖼️ Step 2: Generate HD Art")
     final_prompt = st.text_area("Final Prompt:", value=st.session_state.magic_p, height=100, key="final_prompt")
@@ -114,7 +117,7 @@ if menu == "🎨 Image Studio":
     
     if st.button("🚀 Generate HD Image", key="gen_btn"):
         if final_prompt.strip():
-            with st.spinner(f"🎨 Generating via {engine}..."):
+            with st.spinner(f"🎨 Generating..."):
                 try:
                     if "Segmind" in engine and "SEGMIND_API_KEY" in st.secrets:
                         api_url = "https://api.segmind.com/v1/flux-1-dev"
@@ -128,28 +131,18 @@ if menu == "🎨 Image Studio":
                     
                     if res.status_code == 200:
                         st.image(res.content, use_container_width=True)
-                        st.download_button("💾 Download HD", res.content, f"PatnaAI_{int(time.time())}.png", "image/png")
+                        st.download_button("💾 Download", res.content, "PatnaAI.png", "image/png")
                         st.balloons()
                     else: st.error("Engine busy, try again!")
                 except Exception as e: st.error(f"Error: {e}")
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif menu == "🎥 Video AI":
-    st.header("🎬 Video AI Studio")
-    st.info("🔥 **Video Models** - Coming Soon!")
-
 elif menu == "📞 Support":
-    st.header("📱 Patna Local Support")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.info("**📍 Patna, Bihar**")
-        st.info("**💼 Services:** AI Images, Video AI, Apps")
-    with col2:
-        st.info("**📱 WhatsApp:** +91 8210073056")
-        st.info("**✉️ Email:** chamanjha2015@gmail.com")
-    st.success("🆓 **Unlimited Free Credits** Active!")
+    st.header("📱 Support")
+    st.info("WhatsApp: +91 8210073056")
+    st.success("Patna, Bihar")
 
-# 7. Footer
+# Footer
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: #4facfe;'>✨ Patna AI Studio Pro v8.2 | Bihar's #1 AI Hub</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: white;'>✨ Patna AI Studio Pro v8.3</p>", unsafe_allow_html=True)
 

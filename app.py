@@ -4,199 +4,145 @@ from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
 import io
 import urllib.parse
 import time
-import base64
 import os
 from streamlit_option_menu import option_menu
 import numpy as np
 
-st.set_page_config(page_title="💎 Patna AI Studio Pro v3.0", page_icon="💎", layout="wide")
+st.set_page_config(page_title="Patna AI Studio Pro", page_icon="💎", layout="wide")
 
-# Luxury CSS
+# CSS
 st.markdown("""
 <style>
-.luxury-title {color: #ffd700; font-size: 4.5rem; text-align: center; text-shadow: 0 0 40px #ffd700;}
-.gold-btn {background: linear-gradient(45deg, #ffd700, #ffed4e); color: #1a1a2e; font-weight: 700; border-radius: 25px; box-shadow: 0 8px 25px rgba(255,215,0,0.4);}
-.feature-box {background: rgba(255,215,0,0.1); border: 2px solid rgba(255,215,0,0.3); border-radius: 25px; padding: 2.5rem;}
-.music-selector {background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 15px; padding: 1rem;}
+.luxury-title {color: #ffd700; font-size: 4rem; text-align: center;}
+.gold-btn {background: linear-gradient(45deg, #ffd700, #ffed4e); color: #1a1a2e; font-weight: bold; border-radius: 20px;}
+.feature-box {background: rgba(255,215,0,0.1); border: 2px solid #ffd700; border-radius: 20px; padding: 2rem;}
 </style>
 """, unsafe_allow_html=True)
 
-# === ENHANCED PROMPT BUILDER ===
-def build_pro_prompt(shop_name, product, offer, style="Luxury", language="Hindi", landmark=""):
-    """Ultimate AI Prompt Generator"""
-    base = f"Professional {style} advertisement for '{shop_name}' - Premium {product}"
+def build_pro_prompt(shop_name, product, offer, style="Luxury", landmark=""):
+    base = f"Professional {style} advertisement for {shop_name}, premium {product}"
     if offer:
-        base += f" with exclusive '{offer}' promotion"
+        base += f" with {offer} offer"
     if landmark:
-        base += f", located at {landmark}"
+        base += f" near {landmark}"
     
-    quality = [
-        "Cinematic studio lighting", "8K ultra resolution", "Elegant golden accents",
-        "Sharp hyper-detailed focus", "Luxury product showcase", "Professional photography",
-        "Perfect composition", "Masterpiece quality"
-    ]
-    
-    if language == "Hindi":
-        quality.extend(["Rich Indian heritage colors", "Warm golden hour lighting", "Traditional-modern fusion aesthetic"])
-    
-    return f"{base}. {' | '.join(quality)}"
+    quality = "8K cinematic lighting, golden accents, sharp focus, luxury showcase, masterpiece"
+    return base + ", " + quality
 
-# === FONT SYSTEM ===
 @st.cache_resource
 def load_fonts():
-    font_paths = ["NotoSansDevanagari-VariableFont_wdth,wght.ttf", "NotoSans-Regular.ttf"]
-    sizes = {"title": 72, "subtitle": 52, "info": 38, "small": 28}
-    fonts = {}
-    
-    for name, size in sizes.items():
-        for path in font_paths:
-            try:
-                if os.path.exists(path):
-                    fonts[name] = ImageFont.truetype(path, size)
-                    break
-            except:
-                pass
-        if name not in fonts:
-            fonts[name] = ImageFont.load_default()
-    
-    return fonts
+    try:
+        font = ImageFont.truetype("NotoSansDevanagari-VariableFont_wdth,wght.ttf", 48)
+    except:
+        font = ImageFont.load_default()
+    return font
 
 fonts = load_fonts()
 
-# === AI IMAGE ===
 @st.cache_data(ttl=1800)
-def generate_image(prompt, width=1024, height=1024):
-    api_url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}?width={width}&height={height}&nologo=true&seed={int(time.time()*1000)}"
+def generate_image(prompt):
+    url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}?width=1024&height=1024&nologo=true"
     try:
-        resp = requests.get(api_url, timeout=25)
-        if resp.status_code == 200:
-            return resp.content
-    except:
-        pass
-    return None
-
-# === LUXURY OVERLAY ===
-def add_luxury_overlay(img_bytes, shop_name, product, offer, contact, landmark, address):
-    img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
-    width, height = img.size
-    
-    # Protective Background
-    text_h = int(height * 0.38)
-    mask = Image.new('RGBA', (width, text_h), (0,0,0,0))
-    draw_mask = ImageDraw.Draw(mask)
-    
-    for y in range(text_h):
-        alpha = int(240 * min(1, (y / text_h) ** 0.8))
-        draw_mask.rectangle([0, y, width, y+2], fill=(15, 25, 45, alpha))
-    
-    mask = mask.filter(ImageFilter.GaussianBlur(12))
-    result = Image.alpha_composite(img, mask)
-    draw = ImageDraw.Draw(result)
-    
-    y = height - text_h + 25
-    
-    # TITLE
-    title = f"✨ {shop_name.upper()} ✨"
-    bbox = draw.textbbox((0,0), title, font=fonts["title"])
-    tw = bbox[2] - bbox[0]
-    draw.text((width//2 - tw//2 + 3, y + 3), title, fill="black", font=fonts["title"])
-    draw.text((width//2 - tw//2, y), title, fill="#ffd700", font=fonts["title"])
-    y += 85
-    
-    # OFFER
-    offer_t = f"🔥 {product} | {offer}"
-    bbox = draw.textbbox((0,0), offer_t, font=fonts["subtitle"])
-    tw = bbox[2] - bbox[0]
-    draw.text((width//2 - tw//2, y), offer_t, fill="#ffed4e", font=fonts["subtitle"])
-    y += 70
-    
-    # CONTACT
-    contact_t = f"📞 {contact}"
-    bbox = draw.textbbox((0,0), contact_t, font=fonts["info"])
-    tw = bbox[2] - bbox[0]
-    draw.text((width//2 - tw//2, y), contact_t, fill="white", font=fonts["info"])
-    y += 50
-    
-    # LANDMARK
-    if landmark:
-        lm_t = f"📍 {landmark}"
-        bbox = draw.textbbox((0,0), lm_t, font=fonts["small"])
-        tw = bbox[2] - bbox[0]
-        draw.text((width//2 - tw//2, y), lm_t, fill="#e8f4fd", font=fonts["small"])
-        y += 38
-    
-    # ADDRESS **FIXED LINE 159**
-    if address:
-        addr_lines = [line.strip() for line in address.split('
-') if line.strip()]
-        for i, line in enumerate(addr_lines[:2]):
-            addr_t = f"📬 {line}"
-            bbox = draw.textbbox((0,0), addr_t, font=fonts["small"])
-            tw = bbox[2] - bbox[0]
-            draw.text((width//2 - tw//2, y + i*35), addr_t, fill="#d4e6f1", font=fonts["small"])
-    
-    buf = io.BytesIO()
-    result.convert("RGB").save(buf, "PNG", quality=99)
-    return buf.getvalue()
-
-# === VIDEO (Optional) ===
-def create_video(img_bytes, music_style="energetic"):
-    try:
-        from moviepy.editor import ImageClip, AudioFileClip
-        
-        music_path = f"music/{music_style}.mp3"
-        if not os.path.exists(music_path):
-            return None
-        
-        img = Image.open(io.BytesIO(img_bytes))
-        clip = ImageClip(np.array(img), duration=6)
-        audio = AudioFileClip(music_path).subclip(0,6).volumex(0.3)
-        final = clip.set_audio(audio)
-        
-        buf = io.BytesIO()
-        final.write_videofile(buf, fps=24, codec='libx264', audio_codec='aac')
-        return buf.getvalue()
+        resp = requests.get(url, timeout=20)
+        return resp.content if resp.status_code == 200 else None
     except:
         return None
 
-# === UI ===
-st.markdown('<h1 class="luxury-title">💎 पटना AI स्टूडियो प्रो v3.0</h1>', unsafe_allow_html=True)
+def add_overlay(img_bytes, shop_name, product, offer, contact, landmark, address):
+    img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
+    w, h = img.size
+    
+    # Dark background strip
+    overlay_h = h // 3
+    overlay = Image.new("RGBA", (w, overlay_h), (0,0,0,180))
+    img = Image.alpha_composite(img, overlay)
+    draw = ImageDraw.Draw(img)
+    
+    y = h - overlay_h + 20
+    
+    # Shop name
+    text = f"✨ {shop_name} ✨"
+    bbox = draw.textbbox((0,0), text, font=fonts)
+    text_w = bbox[2] - bbox[0]
+    draw.text(((w-text_w)//2, y), text, fill="#ffd700", font=fonts)
+    y += 60
+    
+    # Product offer
+    text = f"{product} - {offer}"
+    bbox = draw.textbbox((0,0), text, font=fonts)
+    text_w = bbox[2] - bbox[0]
+    draw.text(((w-text_w)//2, y), text, fill="#ffed4e", font=fonts)
+    y += 50
+    
+    # Contact
+    text = f"📞 {contact}"
+    bbox = draw.textbbox((0,0), text, font=fonts)
+    text_w = bbox[2] - bbox[0]
+    draw.text(((w-text_w)//2, y), text, fill="white", font=fonts)
+    y += 40
+    
+    # Landmark
+    if landmark:
+        text = f"📍 {landmark}"
+        bbox = draw.textbbox((0,0), text, font=fonts)
+        text_w = bbox[2] - bbox[0]
+        draw.text(((w-text_w)//2, y), text, fill="#e0e0e0", font=fonts)
+        y += 35
+    
+    # Address - FIXED SYNTAX
+    if address:
+        # Split address by newline properly
+        addr_parts = address.splitlines()
+        for part in addr_parts[:2]:
+            if part.strip():
+                text = f"📬 {part.strip()}"
+                bbox = draw.textbbox((0,0), text, font=fonts)
+                text_w = bbox[2] - bbox[0]
+                draw.text(((w-text_w)//2, y), text, fill="#d0d0d0", font=fonts)
+                y += 30
+    
+    buf = io.BytesIO()
+    img.convert("RGB").save(buf, "PNG", quality=95)
+    return buf.getvalue()
+
+# UI
+st.markdown('<h1 class="luxury-title">💎 पटना AI स्टूडियो प्रो</h1>', unsafe_allow_html=True)
 
 with st.sidebar:
-    selected = option_menu("💎", ["🚀 AI ऐड मेकर"], icons=["cast"])
+    selected = option_menu("Main Menu", ["🚀 AI Ad Maker"], icons=["cast"])
 
-st.markdown('<div class="feature-box"><h2>🎨 लग्ज़री ऐड बनाएं</h2></div>', unsafe_allow_html=True)
-
-col1, col2 = st.columns(2)
-with col1:
-    shop_name = st.text_input("🏪 दुकान", "पटना ज्वेलर्स")
-    product = st.text_input("📦 प्रोडक्ट", "Diamond Set")
-    offer = st.text_input("🎁 ऑफर", "50% OFF")
-    contact = st.text_input("📞", "8210073056")
-
-with col2:
-    landmark = st.text_input("📍 लैंडमार्क", "फ्रेजर रोड")
-    address = st.text_area("🏠 पता", "पटना सिटी, बिहार", height=70)
-
-if st.button("✨ CREATE AD", key="create", help="AI Magic!"):
-    if shop_name and product:
-        with st.spinner("🎨 AI Processing..."):
-            prompt = build_pro_prompt(shop_name, product, offer, landmark=landmark)
-            img_bytes = generate_image(prompt)
-            
-            if img_bytes:
-                final_img = add_luxury_overlay(img_bytes, shop_name, product, offer, 
-                                             contact, landmark, address)
+if selected == "🚀 AI Ad Maker":
+    st.markdown('<div class="feature-box"><h2>🎨 Business Ad Generator</h2></div>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        shop_name = st.text_input("🏪 Business Name", "Patna Jewellers")
+        product = st.text_input("📦 Product", "Gold Necklace")
+        offer = st.text_input("🎁 Offer", "50% OFF")
+        contact = st.text_input("📞 Contact", "8210073056")
+    
+    with col2:
+        landmark = st.text_input("📍 Landmark", "Fraser Road")
+        address = st.text_area("🏠 Full Address", "Patna City, Bihar
+800001", height=80)
+    
+    if st.button("✨ Generate Luxury Ad", key="generate"):
+        if shop_name and product:
+            with st.spinner("🎨 Creating AI Ad..."):
+                prompt = build_pro_prompt(shop_name, product, offer, landmark=landmark)
+                img_bytes = generate_image(prompt)
                 
-                st.image(final_img, use_container_width=True)
-                st.download_button("⬇️ Download PNG", final_img, f"{shop_name}_ad.png")
-                
-                if st.button("🎥 Add Music Video"):
-                    video_bytes = create_video(final_img)
-                    if video_bytes:
-                        st.video(video_bytes)
-                        st.download_button("🎥 MP4", video_bytes, f"{shop_name}_video.mp4")
-            else:
-                st.error("🌐 AI Service busy!")
+                if img_bytes:
+                    final_img = add_overlay(img_bytes, shop_name, product, offer, 
+                                          contact, landmark, address)
+                    
+                    st.image(final_img, use_container_width=True)
+                    st.download_button("⬇️ Download Ad", final_img, "luxury_ad.png")
+                    st.success("✅ Ad Ready!")
+                else:
+                    st.error("🌐 AI service busy. Try again!")
+        else:
+            st.warning("Please fill business name & product")
 
-st.success("✅ **FIXED & READY TO DEPLOY!** 🚀")
+st.markdown("---")
+st.markdown("© 2026 Patna AI Studio Pro | +91 8210073056")

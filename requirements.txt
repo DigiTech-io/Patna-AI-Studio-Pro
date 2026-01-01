@@ -2,6 +2,7 @@ streamlit
 Pillow
 requests
 numpy
-replicate
+pandas
 streamlit-option-menu
+replicate
 

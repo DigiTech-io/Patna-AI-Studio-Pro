@@ -155,22 +155,26 @@ def add_luxury_overlay(img_bytes, shop_name, product, offer, contact, landmark, 
         y += 38
     
     # ADDRESS
-    if address:
-        lines = address.split('\n')[:2]
-158 if address:
-159     lines = address.split('\n')[:2]
-161     for line in lines:
+            # === ADDRESS SECTION (Line 158 se replace karein) ===
+        if address:
+            # Address ko newline (\n) se split karke pehli 2 lines lena
+            lines = address.split('\n')[:2]
+            
+            for line in lines:
+                if line.strip():
+                    addr_t = f"📬 {line.strip()}"
+                    # Font size ke hisaab se text box calculate karna
+                    bbox = draw.textbbox((0,0), addr_t, font=fonts["small"])
+                    tw = bbox[2] - bbox[0]
+                    # Text ko image ke center mein draw karna
+                    draw.text(((width//2 - tw//2), y), addr_t, fill="#d4e6f1", font=fonts["small"])
+                    y += 35
 
-        for line in lines:
-            if line.strip():
-                addr_t = f"📬 {line.strip()}"
-                bbox = draw.textbbox((0,0), addr_t, font=fonts["small"])
-                tw = bbox[2] - bbox[0]
-                draw.text((width//2 - tw//2, y), addr_t, fill="#d4e6f1", font=fonts["small"])
-                y += 35
-    
-    # Save Ultra Quality
-    buf = io.BytesIO()
+        # Save the final image to a buffer
+        buf = io.BytesIO()
+        result.convert("RGB").save(buf, "PNG", quality=99, optimize=True)
+        return buf.getvalue()
+
     result.convert("RGB").save(buf, "PNG", quality=99, optimize=True)
     return buf.getvalue()
 

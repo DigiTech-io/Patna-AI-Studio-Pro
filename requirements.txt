@@ -1,6 +1,7 @@
 streamlit
-pillow
+Pillow
 requests
 numpy
 replicate
+streamlit-option-menu
 

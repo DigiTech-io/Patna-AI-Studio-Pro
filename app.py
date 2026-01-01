@@ -157,7 +157,10 @@ def add_luxury_overlay(img_bytes, shop_name, product, offer, contact, landmark, 
     # ADDRESS
     if address:
         lines = address.split('\n')[:2]
-')[:2]
+158 if address:
+159     lines = address.split('\n')[:2]
+161     for line in lines:
+
         for line in lines:
             if line.strip():
                 addr_t = f"📬 {line.strip()}"

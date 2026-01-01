@@ -156,7 +156,7 @@ def add_luxury_overlay(img_bytes, shop_name, product, offer, contact, landmark, 
     
     # ADDRESS
     if address:
-        lines = address.split('
+        lines = address.split(')
 ')[:2]
         for line in lines:
             if line.strip():

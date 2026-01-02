@@ -6,19 +6,37 @@ import os
 from pydub import AudioSegment
 from streamlit_option_menu import option_menu
 
-# --- 1. CONFIGURATION ---
+# --- 1. सुरक्षा और कॉन्फ़िगरेशन ---
 try:
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
     ELEVENLABS_API_KEY = st.secrets["ELEVENLABS_API_KEY"]
 except KeyError:
-    st.error("🚫 API Keys missing in Streamlit Secrets!")
+    st.error("🚫 Streamlit Secrets में API कीज़ नहीं मिलीं!")
     st.stop()
 
-# --- 2. AI MODEL SETUP ---
+# --- 2. स्मार्ट मॉडल लोडर (Error Fix) ---
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
 
-# --- 3. CORE AUDIO FUNCTIONS ---
+def get_working_model():
+    # यह लिस्ट सबसे नए और स्थिर मॉडल्स को ट्राई करेगी
+    model_list = ['gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-pro']
+    for model_name in model_list:
+        try:
+            m = genai.GenerativeModel(model_name)
+            # छोटा टेस्ट रन
+            m.generate_content("Hi", generation_config={"max_output_tokens": 1})
+            return m
+        except:
+            continue
+    return None
+
+model = get_working_model()
+
+if model is None:
+    st.error("🚫 Google AI मॉडल अभी उपलब्ध नहीं हैं। कृपया अपनी API Key जांचें।")
+    st.stop()
+
+# --- 3. ऑडियो इंजन (Mixer) ---
 def generate_voice(text):
     url = "https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpg8ndclAY7gu"
     headers = {"xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json"}
@@ -37,6 +55,7 @@ def mix_audio(voice_path, music_name):
         if music_name != "No Music":
             music_path = os.path.join("music", music_name)
             if os.path.exists(music_path):
+                # बैकग्राउंड म्यूजिक को धीमा करना (-22dB)
                 music = AudioSegment.from_file(music_path) - 22
                 if len(music) > len(voice): music = music[:len(voice)]
                 final = music.overlay(voice)
@@ -46,64 +65,63 @@ def mix_audio(voice_path, music_name):
     except: pass
     return voice_path
 
-# --- 4. NAVIGATION & UI ---
-st.set_page_config(page_title="Patna AI Studio Pro v11.0", layout="wide")
+# --- 4. यूआई और नेविगेशन ---
+st.set_page_config(page_title="Patna AI Studio Pro v11.5", layout="wide")
 
 with st.sidebar:
     st.markdown("<h2 style='color:#e91e63; text-align:center;'>Patna AI Studio</h2>", unsafe_allow_html=True)
+    # सभी फीचर्स यहाँ एक्टिवेट किए गए हैं
     selected = option_menu(
         "🎯 Control Panel", 
         ["🗳️ Election Tool", "🚀 Ad Studio", "📊 Dashboard", "📞 Support"], 
         icons=["mic", "sparkles", "bar-chart", "phone"],
         default_index=0
     )
-    is_followed = st.checkbox("✅ YouTube Subscribed", value=True)
+    st.info("WhatsApp: 8210073056")
 
-# --- 5. LOGIC FOR EACH FEATURE ---
+# --- 5. फीचर्स की लॉजिक ---
 
 if selected == "🗳️ Election Tool":
     st.header("🗳️ Election Campaign Audio")
     col1, col2 = st.columns(2)
     with col1:
         name = st.text_input("Candidate Name", "Eknath Jha")
-        pad = st.selectbox("Post", ["Mukhiya", "Sarpanch", "Zila Parishad"])
+        pad = st.selectbox("Post", ["Mukhiya", "Sarpanch", "Zila Parishad", "Pramukh"])
     with col2:
         panchayat = st.text_input("Panchayat", "Patna City")
         symbol = st.text_input("Symbol", "Motorcycle")
-    
+
+    # म्यूजिक फोल्डर स्कैनिंग
     music_files = [f for f in os.listdir("music") if f.endswith(('.mp3', '.m4a'))] if os.path.exists("music") else []
-    selected_music = st.selectbox("Select Background Music", ["No Music"] + music_files)
+    selected_music = st.selectbox("🎵 Background Music", ["No Music"] + music_files)
 
     if st.button("🎙️ GENERATE CAMPAIGN AUDIO", type="primary"):
-        with st.spinner("AI is working..."):
-            prompt = f"Powerful 25-word Hindi election slogan for {name} ({pad}) in {panchayat} with symbol {symbol}."
-            script = model.generate_content(prompt).text
-            st.success(f"📜 Script: {script}")
+        with st.spinner("AI स्क्रिप्ट और आवाज़ तैयार कर रहा है..."):
+            prompt = f"Write a powerful 25-word Hindi election slogan for {name} for {pad} in {panchayat} with symbol {symbol}."
+            script_resp = model.generate_content(prompt)
+            script = script_resp.text
+            st.success(f"📜 स्क्रिप्ट: {script}")
+            
             v_file = generate_voice(script)
             if v_file:
                 final = mix_audio(v_file, selected_music)
                 st.audio(final)
-                st.download_button("💾 Download MP3", open(final, 'rb'), "campaign.mp3")
+                st.download_button("💾 Download MP3", open(final, 'rb'), f"{name}_ad.mp3")
 
 elif selected == "🚀 Ad Studio":
-    st.header("🚀 Professional Ad Maker")
-    biz_name = st.text_input("Business Name")
-    biz_type = st.selectbox("Category", ["Grocery", "Clothing", "Electronics", "Restaurant"])
-    offer = st.text_input("Special Offer (e.g. 20% Off)")
-    
-    if st.button("Generate Ad"):
-        with st.spinner("Creating Ad..."):
-            prompt = f"Create a catchy 20-word Hindi ad for {biz_name} ({biz_type}) with offer: {offer}."
-            script = model.generate_content(prompt).text
-            st.info(script)
-            # यहाँ भी आप वॉइस जनरेशन जोड़ सकते हैं
+    st.header("🚀 Professional Business Ad Maker")
+    biz_name = st.text_input("Shop Name")
+    offer = st.text_input("Special Offer")
+    if st.button("Create Ad"):
+        with st.spinner("विज्ञापन तैयार हो रहा है..."):
+            prompt = f"Create a catchy 20-word Hindi radio ad for {biz_name} offering {offer}."
+            st.write(model.generate_content(prompt).text)
 
 elif selected == "📊 Dashboard":
-    st.header("📊 Performance Dashboard")
-    st.write("Current Session Analytics:")
-    st.metric("Total Audio Generated", "15")
-    st.metric("Top Category", "Election")
+    st.header("📊 Usage Analytics")
+    st.metric("Today's Creations", "24")
+    st.metric("Total Credits", "Unlimited")
 
 elif selected == "📞 Support":
-    st.markdown("### 📞 Contact Support\nWhatsApp: [8210073056](https://wa.me/918210073056)")
+    st.write("Instant Help: [WhatsApp Support](https://wa.me/918210073056)")
 

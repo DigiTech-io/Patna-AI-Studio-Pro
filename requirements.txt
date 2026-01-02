@@ -1,9 +1,9 @@
 streamlit
 Pillow
 requests
-numpy
+google-generativeai
+pydub
 streamlit-option-menu
-replicate
+numpy
 moviepy
-imageio[ffmpeg]
 

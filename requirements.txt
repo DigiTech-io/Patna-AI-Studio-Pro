@@ -1,9 +1,5 @@
 streamlit
-Pillow
-requests
 google-generativeai
 pydub
 streamlit-option-menu
-numpy
-moviepy
 

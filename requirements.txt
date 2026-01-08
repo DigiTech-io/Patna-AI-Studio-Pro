@@ -1,6 +1,11 @@
 streamlit
+
 google-generativeai
+
 streamlit-option-menu
+
 pydub
+
 requests
+
 pillow

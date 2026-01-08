@@ -1,3 +1,4 @@
+pyaudioop
 streamlit
 google-generativeai
 pydub

@@ -1,3 +1,5 @@
 streamlit
-google-generativeai
+google-genai
+pydub
 streamlit-option-menu
+requests

@@ -1,5 +1,6 @@
 streamlit
-google-genai
-pydub
+google-generativeai
 streamlit-option-menu
+pydub
 requests
+pillow

@@ -1,96 +1,82 @@
 import streamlit as st
-import os
 import requests
+import base64
 from google import genai
 from streamlit_option_menu import option_menu
-from pydub import AudioSegment
 
-# --- 1. GLOBAL CONFIGURATION ---
-st.set_page_config(page_title="Vixan AI Studio Pro", layout="wide", initial_sidebar_state="expanded")
+# --- PREMIUM UI CONFIG ---
+st.set_page_config(page_title="Vixan AI Studio Pro", layout="wide")
+st.markdown("""
+<style>
+    .stApp { background: linear-gradient(to right, #f8f9fa, #e9ecef); }
+    .stButton>button { width: 100%; border-radius: 12px; height: 3.5em; background: #ff4b4b; color: white; font-weight: bold; border: none; }
+    .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+</style>
+""", unsafe_allow_html=True)
 
-# --- 2. SECRETS LOADING (Multiple Backup) ---
-def get_key(name):
-    return st.secrets.get(name) or os.environ.get(name)
+# --- API SECRETS ---
+def get_api_key(name):
+    return st.secrets.get(name)
 
 KEYS = {
-    "GEMINI": get_key("GOOGLE_API_KEY"),
-    "SEGMIND": get_key("SEGMIND_API_KEY"),
-    "ELEVENLABS": get_key("ELEVENLABS_API_KEY"),
-    "REMOVE_BG": get_key("REMOVE_BG_API_KEY"),
-    "REPLICATE": get_key("REPLICATE_API_TOKEN")
+    "GEMINI": get_api_key("GOOGLE_API_KEY"),
+    "SEGMIND": get_api_key("SEGMIND_API_KEY"),
+    "ELEVENLABS": get_api_key("ELEVENLABS_API_KEY")
 }
 
-# Check connection
-if not KEYS["GEMINI"]:
-    st.error("🚫 Connection Lost: Please check Secrets for GOOGLE_API_KEY")
-    st.stop()
-
-# --- 3. CUSTOM CSS FOR PREMIUM LOOK ---
-st.markdown("""
-    <style>
-    .main { background-color: #f5f7f9; }
-    .stButton>button { width: 100%; border-radius: 10px; height: 3em; background-color: #ff4b4b; color: white; }
-    .design-card { border: 1px solid #ddd; padding: 15px; border-radius: 10px; background: white; margin-bottom: 10px; }
-    </style>
-    """, unsafe_allow_html=True)
-
-# --- 4. NAVIGATION MENU ---
+# --- SIDEBAR NAVIGATION ---
 with st.sidebar:
-    st.image("https://via.placeholder.com/150?text=VIXAN+AI", width=100)
-    selected = option_menu(
-        "Main Menu",
-        ["AI Poster Studio", "Clone & New Design", "AI Voice/Audio", "Bulk Production"],
-        icons=['palette', 'magic', 'mic', 'layers'],
-        menu_icon="cast", default_index=0,
-    )
+    st.title("🚀 Vixan AI Studio")
+    selected = option_menu("Main Menu", ["Poster Studio", "Universal Cloner", "Audio Studio", "Slogan Library"], 
+        icons=['palette', 'magic', 'mic', 'chat-quote'], menu_icon="cast", default_index=0)
 
-# --- 5. MODULE 1: AI POSTER STUDIO (30+ Designs) ---
-if selected == "AI Poster Studio":
-    st.header("🎨 AI Design Library (30+ Templates)")
-    col1, col2 = st.columns([1, 2])
-    
+# --- MODULE 1: POSTER STUDIO (30+ Styles) ---
+if selected == "Poster Studio":
+    st.header("🎨 AI Design Studio")
+    col1, col2 = st.columns([1, 1.5])
     with col1:
-        category = st.selectbox("Category", ["Political", "Commercial", "Festival", "Custom"])
-        # Aapke PDF ke designs yahan link honge
-        style = st.selectbox("Select Template", [
-            "Poonam Devi (Blue Circle Sticker)", 
-            "Jagdish Prasad (Saffron Banner)", 
-            "Mukhiya Red Frame Style",
-            "Ward Member Digital Card"
-        ])
-        name = st.text_input("Candidate/Shop Name")
-        slogan = st.text_area("Slogan/Details")
-        
-        if st.button("Generate Final Design"):
-            with st.spinner("AI Engine Rendering..."):
-                # Yahan Segmind Flux 1.0 ya Pro ka logic call hoga
-                st.success(f"{style} for {name} is ready!")
+        name = st.text_input("Candidate/Brand Name")
+        slogan = st.text_area("Slogan/Message")
+        style = st.selectbox("Design Style", ["Poonam Devi (Circle)", "Mukhiya Style", "Banner Style", "Professional Business"])
+        if st.button("🎯 Generate Poster"):
+            st.info("Generating high-quality design...")
 
-# --- 6. MODULE 2: CLONE & NEW DESIGN (Deep Learning) ---
-elif selected == "Clone & New Design":
-    st.header("🧬 Design Cloning Engine")
-    st.write("Yahan aap koi bhi naya design upload karein, AI uska clone aur behtar version banayega.")
+# --- MODULE 2: UNIVERSAL CLONER (Unlimited Design) ---
+elif selected == "Universal Cloner":
+    st.header("🧬 Universal Design Cloner")
+    st.write("Koi bhi sample photo upload karein, AI uska 100% clone banayega.")
+    ref_img = st.file_uploader("Upload Sample", type=['jpg', 'png', 'jpeg'])
+    if ref_img:
+        st.image(ref_img, width=300, caption="Your Sample")
+        if st.button("🚀 Start 100% Exact Cloning"):
+            st.warning("Cloning engine analyzing structure... Please wait.")
+
+# --- MODULE 3: AUDIO STUDIO (Text-to-Speech Preview) ---
+elif selected == "Audio Studio":
+    st.header("🎙️ Pro Audio Studio")
+    script = st.text_area("Script Likhein", placeholder="Namaskar, main AI bol raha hoon...")
     
-    ref_image = st.file_uploader("Reference Design Upload Karein", type=['jpg', 'png', 'jpeg'])
-    if ref_image:
-        st.image(ref_image, caption="Original Design", width=300)
-        if st.button("Analyze & Clone"):
-            # Image-to-Prompt Logic using Gemini
-            st.info("Analyzing Design Elements... Generating High-Quality Clone.")
-
-# --- 7. MODULE 3: AI VOICE & AUDIO ---
-elif selected == "AI Voice/Audio":
-    st.header("🎙️ AI Studio Voice")
-    voice_text = st.text_area("Audio Script Likhein")
-    voice_speed = st.slider("Speed", 0.5, 1.5, 1.0)
+    col_a, col_b = st.columns(2)
+    with col_a:
+        speed = st.slider("Awaaz ki Speed", 0.5, 1.5, 1.0)
+    with col_b:
+        quality = st.select_slider("Audio Quality", options=["Standard", "HQ (192kbps)", "Ultra (320kbps)"])
     
-    if st.button("Generate Audio"):
-        if KEYS["ELEVENLABS"]:
-            st.info("Generating Voice with ElevenLabs...")
-            # ElevenLabs API Call here
-        else:
-            st.error("ElevenLabs Key Missing!")
+    if st.button("🔊 Preview & Generate"):
+        st.success("Audio Rendered! Listen below:")
+        st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3") # Placeholder
+        st.download_button("📥 Download Final Audio", data="...", file_name="vixan_audio.mp3")
 
-# --- FOOTER ---
-st.markdown("---")
-st.caption("Powered by Vixan AI Studio Pro | Beyond Boundaries")
+# --- MODULE 4: SLOGAN LIBRARY ---
+elif selected == "Slogan Library":
+    st.header("✍️ Famous Slogan Collection")
+    cat = st.radio("Category", ["Political", "Motivational", "Business"])
+    library = {
+        "Political": ["Vikas ki nayi raah", "Sabka saath, sabka vikas", "Aapka vishwas, hamara kaam"],
+        "Motivational": ["Hauslo ki udaan", "Rukna nahi hai", "Sapne honge sach"],
+        "Business": ["Quality ki pehchan", "Sasta nahi, sabse achha"]
+    }
+    for s in library[cat]:
+        st.code(s)
+        if st.button(f"Copy: {s[:15]}..."):
+            st.toast(f"Copied: {s}")

@@ -1,120 +1,105 @@
 import streamlit as st
 import requests
-import base64
 
-# --- CONFIG & THEME ---
-st.set_page_config(page_title="Vixan AI Studio Pro", layout="wide", page_icon="🚀")
+# --- CONFIG ---
+st.set_page_config(page_title="Vixan AI Studio Pro", layout="wide")
 
-# Premium Interface CSS
+# CSS for Premium Look
 st.markdown("""
     <style>
-    .main { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white; }
-    .stTabs [data-baseweb="tab-list"] { gap: 10px; }
-    .stTabs [data-baseweb="tab"] { 
-        background-color: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 20px; color: white;
-    }
-    .stTabs [aria-selected="true"] { background-color: #ff4b4b !important; }
-    div.stButton > button {
-        background: linear-gradient(45deg, #ff4b4b, #ff8a05); color: white; border: none;
-        border-radius: 8px; transition: 0.3s; font-weight: bold; width: 100%;
-    }
-    .payment-card {
-        background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.2); text-align: center;
-    }
+    .main { background-color: #0e1117; color: white; }
+    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
+    .stTabs [data-baseweb="tab"] { background-color: #262730; border-radius: 5px; color: white; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- SECRETS & KEYS ---
-SEGMIND_KEY = st.secrets.get("SEGMIND_API_KEY")
+# --- SECRETS ---
 ELEVEN_KEY = st.secrets.get("ELEVENLABS_API_KEY")
-RAZORPAY_LINK = "https://rzp.io/l/your_link" # Apne Razorpay link se badlein
 
-# --- ENGINE FUNCTIONS ---
-def generate_vixan_media(prompt, type="image"):
-    # Failover logic for images (Segmind -> Pollinations)
-    if type == "image":
-        free_url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ', '%20')}?width=1024&height=1024&nologo=true"
-        try:
-            res = requests.get(free_url, timeout=15)
-            return res.content
-        except: return None
+# --- AUDIO ENGINE FUNCTION ---
+def generate_audio(text, stability, clarity, style_exaggeration, voice_id):
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    headers = {
+        "Accept": "audio/mpeg",
+        "Content-Type": "application/json",
+        "xi-api-key": ELEVEN_KEY
+    }
+    data = {
+        "text": text,
+        "model_id": "eleven_multilingual_v2",
+        "voice_settings": {
+            "stability": stability,
+            "similarity_boost": clarity,
+            "style": style_exaggeration,
+            "use_speaker_boost": True
+        }
+    }
+    response = requests.post(url, json=data, headers=headers)
+    if response.status_code == 200:
+        return response.content
+    else:
+        return None
 
-# --- APP NAVIGATION ---
+# --- APP LAYOUT ---
 st.title("🚀 Vixan AI Studio Pro")
-st.markdown("##### Next-Gen Marketing & Audio Intelligence")
 
-tabs = st.tabs(["🎨 Visual Studio", "🎙️ Audio Engine", "📢 WhatsApp Bot", "💳 Premium Upgrade"])
+tab1, tab2, tab3 = st.tabs(["🎙️ Advanced Audio AI", "🎨 Image Studio", "💳 Payment & WhatsApp"])
 
-# --- TAB 1: VISUAL STUDIO ---
-with tabs[0]:
-    col1, col2 = st.columns([1, 1])
+# --- TAB 1: AUDIO CLONING & CONTROL ---
+with tab1:
+    st.subheader("Professional Voice Settings")
+    col1, col2 = st.columns(2)
+    
     with col1:
-        st.subheader("AI Design Studio")
-        mode = st.selectbox("Design Type", ["Political Poster", "Business Banner", "Image Clone Style"])
-        name = st.text_input("Brand/Neta Name")
-        slogan = st.text_area("Slogan")
-        if st.button("Generate Masterpiece ✨"):
-            with st.spinner("Processing..."):
-                img = generate_vixan_media(f"{mode} for {name}, {slogan}, hyper-realistic, 8k")
-                if img: st.image(img, use_container_width=True)
-
-# --- TAB 2: AUDIO ENGINE (TTS & Settings) ---
-with tabs[1]:
-    st.subheader("AI Voice & Sound Control")
-    col_a, col_b = st.columns(2)
-    with col_a:
-        script = st.text_area("Audio Script", placeholder="Namaste, main aapki AI voice hoon...")
-        voice_style = st.select_slider("Voice Stability (Control)", options=["Low", "Medium", "High"])
-        voice_id = st.selectbox("Select Voice", ["Professional Male", "Elegant Female", "Cloned Voice (Pro)"])
+        text_input = st.text_area("Write Script (Hindi/English)", "Namaste, Vixan AI Studio mein aapka swagat hai.")
+        voice_id = st.selectbox("Select Voice Type", [
+            ("Adam - Deep Male", "pNInz6obpgDQGcFmaJgB"),
+            ("Antoni - Friendly", "ErXwbc3VNb7s19Cc71v0"),
+            ("Bella - Soft Female", "EXAVITQu4vr4xnSDxMaL")
+        ])
         
-    with col_b:
-        st.info("Audio Cloning Feature: Upload a 1-min clip to clone (Pro Feature)")
-        uploaded_voice = st.file_uploader("Upload voice sample for cloning", type=["mp3", "wav"])
-        if st.button("Generate AI Audio 🎙️"):
-            st.warning("Connecting to ElevenLabs API...")
-            # Actual ElevenLabs integration logic here
+    with col2:
+        st.write("🎚️ Sound Control Settings")
+        stab = st.slider("Stability (Low: Emotional | High: Steady)", 0.0, 1.0, 0.5)
+        clarity = st.slider("Clarity + Similarity Boost", 0.0, 1.0, 0.75)
+        style = st.slider("Style Exaggeration", 0.0, 1.0, 0.0)
 
-# --- TAB 3: WHATSAPP & CALL AUTOMATION ---
-with tabs[2]:
-    st.subheader("WhatsApp Marketing Tools")
-    msg_type = st.radio("Auto-Reply Message Type", ["Welcome Note", "Price List", "Call Back Request"])
-    whatsapp_num = st.text_input("Apna WhatsApp Number (With Country Code)")
+    if st.button("Generate & Preview Audio 🔊"):
+        if not ELEVEN_KEY:
+            st.error("ElevenLabs API Key missing!")
+        else:
+            with st.spinner("Creating AI Voice..."):
+                audio_content = generate_audio(text_input, stab, clarity, style, voice_id[1])
+                if audio_content:
+                    st.audio(audio_content, format='audio/mp3')
+                    st.download_button("Download Audio", audio_content, "vixan_audio.mp3")
+                else:
+                    st.error("Error generating audio. Check API quota.")
+
+# --- TAB 2: IMAGE STUDIO (Hindi Prompt Fix) ---
+with tab2:
+    st.subheader("Image Generator (Hindi Prompt Support)")
+    # AI ko Hindi likhne ke liye instruction dena padta hai
+    hindi_text = st.text_input("Poster par kya likhna hai? (Hindi mein)")
+    style_type = st.selectbox("Style", ["Political", "Cinematic", "3D Render"])
     
-    # Dynamic WhatsApp Link Generation
-    custom_msg = f"Hello Vixan AI, I want to inquire about {msg_type}"
-    wa_link = f"https://wa.me/{whatsapp_num}?text={custom_msg.replace(' ', '%20')}"
+    if st.button("Generate Image 🖼️"):
+        # Yahan hum prompt ko optimize kar rahe hain taaki AI Hindi fonts behtar banaye
+        prompt = f"A professional {style_type} poster. In the center, large bold Devanagari Hindi text saying '{hindi_text}'. High quality, 8k, vibrant colors."
+        img_url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ', '%20')}?width=1024&height=1280&nologo=true"
+        st.image(img_url, caption="Note: AI kabhi-kabhi Hindi spelling galat kar sakta hai.")
+
+# --- TAB 3: PAYMENT & WHATSAPP ---
+with tab3:
+    st.info("Razorpay Payment Gateway")
+    st.markdown(f"[![Pay Now](https://img.shields.io/badge/Pay%20Now-Razorpay-blue?style=for-the-badge)](https://rzp.io/l/your_link)")
     
-    col_wa, col_call = st.columns(2)
-    with col_wa:
-        st.markdown(f'<a href="{wa_link}" target="_blank"><button style="width:100%; height:50px; background-color:#25D366; color:white; border-radius:10px; border:none; cursor:pointer;">Message on WhatsApp</button></a>', unsafe_allow_html=True)
-    with col_call:
-        st.markdown(f'<a href="tel:{whatsapp_num}"><button style="width:100%; height:50px; background-color:#007bff; color:white; border-radius:10px; border:none; cursor:pointer;">Call Now</button></a>', unsafe_allow_html=True)
-
-# --- TAB 4: PAYMENT & PARTNER SECTION ---
-with tabs[3]:
-    st.markdown(f"""
-    <div class="payment-card">
-        <h3>💎 Upgrade to Pro Plus</h3>
-        <p>Unlock: Audio Cloning, Video Generation, and Ad-Free Experience</p>
-        <h2 style="color:#ffdb05;">₹999 / Monthly</h2>
-        <a href="{RAZORPAY_LINK}" target="_blank">
-            <button style="padding:15px 30px; font-size:20px; background:gold; color:black; border-radius:10px; border:none; font-weight:bold; cursor:pointer;">
-                PAY NOW WITH RAZORPAY
-            </button>
-        </a>
-        <p style="margin-top:10px; font-size:12px;">Secure Transaction via Razorpay</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-# --- SIDEBAR UNIQUE FEATURES ---
-with st.sidebar:
-    st.title("Vixan Partner Panel")
-    st.metric(label="System Health", value="98%", delta="Optimal")
     st.write("---")
-    st.subheader("Partner Special: AI Suggestion")
-    if st.button("Get Trending Ad Idea"):
-        st.success("Trending Idea: 'AI-Generated Personal Video Greeting for Elections'")
-    
-    st.markdown("---")
-    st.write("Developed by Vixan Partner AI")
+    st.subheader("WhatsApp Auto-Reply")
+    wa_num = st.text_input("WhatsApp Number")
+    if st.button("Create WhatsApp Link"):
+        link = f"https://wa.me/{wa_num}?text=Mujhe%20Vixan%20AI%20Premium%20chahiye"
+        st.success(f"Link Ready: {link}")
+
+st.sidebar.title("Vixan Partner Panel")
+st.sidebar.write("Unique Feature: **Auto-Content Suggestion**")

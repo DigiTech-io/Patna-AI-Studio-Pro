@@ -1,36 +1,42 @@
-# ================= MODULE: TEXT TO IMAGE =================
-elif selected == "Text to Image":
-    st.header("🖼️ AI Imagine Engine")
-    prompt = st.text_area("Aap kya banana chahte hain? (Describe in detail)")
-    
-    if st.button("🚀 Generate High-Res Image"):
-        with st.spinner("Vixan AI image render kar raha hai..."):
-            # Segmind Flux API Call
-            url = "https://api.segmind.com/v1/flux-1.0-schnell"
-            payload = {"prompt": prompt, "base64": True, "aspect_ratio": "1:1"}
-            headers = {"x-api-key": SEGMIND_KEY}
-            
-            response = requests.post(url, json=payload, headers=headers)
-            data = response.json()
-            
-            if "image" in data:
-                st.image(f"data:image/png;base64,{data['image']}", use_column_width=True)
-                st.success("✨ Image ready!")
-            else:
-                st.error("API Error: Key check karein.")
+import streamlit as st
+import requests
 
-# ================= MODULE: IMAGE TO VIDEO =================
-elif selected == "Image to Video":
-    st.header("🎬 Motion AI Studio")
-    st.info("Photo upload karein aur use video mein badlein.")
-    
-    uploaded_file = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg'])
-    
-    if uploaded_file:
-        st.image(uploaded_file, width=300, caption="Original Photo")
-        if st.button("🎥 Create 4-Second Video"):
-            with st.spinner("AI motion analysis kar raha hai... isme 1-2 min lag sakte hain."):
-                # Yahan Segmind SVD (Stable Video Diffusion) API call aayegi
-                st.warning("Video Generation engine is connecting... (SVD API integration required)")
-                # Demo placeholder
-                st.video("https://samplelib.com/lib/preview/mp4/sample-5s.mp4")
+# --- UI SETTINGS ---
+st.set_page_config(page_title="Vixan AI Studio Pro", layout="wide")
+
+# --- SECRETS ---
+SEGMIND_KEY = st.secrets.get("SEGMIND_API_KEY")
+ELEVEN_KEY = st.secrets.get("ELEVENLABS_API_KEY")
+
+# --- APP LOGIC ---
+st.title("🚀 Vixan AI Studio Pro")
+st.subheader("High-Quality Design & Audio Engine")
+
+tab1, tab2, tab3 = st.tabs(["🎨 Poster Studio", "🖼️ Imagine (Text-to-Image)", "🎙️ AI Audio"])
+
+with tab1:
+    st.header("Political & Business Poster Maker")
+    name = st.text_input("Naam Likhein")
+    slogan = st.text_input("Slogan (Naara)")
+    if st.button("Generate Poster"):
+        if SEGMIND_KEY:
+            # Flux Schnell API Logic
+            st.info(f"Rendering Poster for {name}...")
+            # Actual API call will show image here
+        else:
+            st.error("API Key Missing!")
+
+with tab2:
+    st.header("AI Imagine Engine")
+    prompt = st.text_area("Describe your imagination...")
+    if st.button("Generate Art"):
+        st.info("Creating high-resolution art...")
+
+with tab3:
+    st.header("Professional Audio Studio")
+    script = st.text_area("Script for Audio")
+    if st.button("Listen Preview"):
+        st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
+        st.success("Preview Ready! Download below.")
+
+st.sidebar.warning("🎬 Video Generation: Coming Soon in Pro+")

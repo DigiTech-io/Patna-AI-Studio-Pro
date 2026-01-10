@@ -1,206 +1,101 @@
 import streamlit as st
 import requests
-import urllib.parse
+from PIL import Image, ImageDraw, ImageFont
+import io
 
-# ================== PAGE CONFIG ==================
-st.set_page_config(
-    page_title="Vixan AI Studio Pro",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# --- UI SETTINGS ---
+st.set_page_config(page_title="Vixan AI Studio Pro", layout="wide")
 
-# ================== PREMIUM UI CSS ==================
+# --- CUSTOM CSS FOR PREMIUM LOOK ---
 st.markdown("""
-<style>
-.stApp {
-    background-color: #0e1117;
-    color: white;
-}
-h1, h2, h3 {
-    color: #f1f1f1;
-}
-.stTabs [data-baseweb="tab-list"] {
-    gap: 10px;
-}
-.stTabs [data-baseweb="tab"] {
-    background-color: #1f2937;
-    border-radius: 8px;
-    padding: 8px 16px;
-    color: white;
-}
-.stButton>button {
-    width: 100%;
-    background: linear-gradient(90deg, #ff416c, #ff4b2b);
-    color: white;
-    border-radius: 10px;
-    height: 3em;
-    border: none;
-    font-weight: bold;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ================== SECRETS ==================
-ELEVEN_KEY = st.secrets.get("ELEVENLABS_API_KEY")
-
-# ================== AUDIO FUNCTION ==================
-def generate_audio(text, stability, clarity, style_exaggeration, voice_id):
-    if not ELEVEN_KEY:
-        return None, "ElevenLabs API Key missing"
-
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
-    headers = {
-        "Accept": "audio/mpeg",
-        "Content-Type": "application/json",
-        "xi-api-key": ELEVEN_KEY
+    <style>
+    .main { background-color: #0e1117; color: white; }
+    .stButton>button { 
+        background: linear-gradient(45deg, #00d2ff, #3a7bd5); 
+        color: white; font-weight: bold; border: none; padding: 10px;
     }
-    payload = {
-        "text": text,
-        "model_id": "eleven_multilingual_v2",
-        "voice_settings": {
-            "stability": stability,
-            "similarity_boost": clarity,
-            "style": style_exaggeration,
-            "use_speaker_boost": True
-        }
+    .razorpay-box {
+        border: 2px solid #3a7bd5; padding: 20px; border-radius: 15px;
+        text-align: center; background: rgba(58, 123, 213, 0.1);
     }
+    </style>
+    """, unsafe_allow_html=True)
 
-    response = requests.post(url, json=payload, headers=headers, timeout=60)
+# --- CONFIG ---
+RAZORPAY_PAY_LINK = "https://rzp.io/l/vixanaistudiopro" # Yahan apna link dalein
 
-    if response.status_code == 200:
-        return response.content, None
-    else:
-        return None, response.text
+# --- HINDI TEXT OVERLAY FUNCTION ---
+def add_hindi_text(image_bytes, text, font_size=60):
+    img = Image.open(io.BytesIO(image_bytes))
+    draw = ImageDraw.Draw(img)
+    
+    # Aap "Khand-Bold.ttf" ya koi bhi Hindi font file apne GitHub repo me upload karein
+    try:
+        # Font file path (ensure you upload 'Khand.ttf' to your github)
+        font = ImageFont.truetype("Khand-Bold.ttf", font_size)
+    except:
+        # Fallback agar font file nahi mili
+        font = ImageFont.load_default()
+        st.warning("Custom Hindi Font file nahi mili. 'Khand-Bold.ttf' repo me upload karein.")
 
-# ================== APP HEADER ==================
+    # Text ko center me dikhane ke liye logic
+    w, h = img.size
+    draw.text((w/2, h-150), text, font=font, fill="white", anchor="ms", stroke_width=2, stroke_fill="black")
+    
+    # Return edited image
+    img_byte_arr = io.BytesIO()
+    img.save(img_byte_arr, format='PNG')
+    return img_byte_arr.getvalue()
+
+# --- APP LAYOUT ---
 st.title("🚀 Vixan AI Studio Pro")
-st.caption("Advanced Audio • Hindi Image AI • Payments • WhatsApp Automation")
+st.caption("Advanced Marketing Hub with Hindi Font Support")
 
-tab1, tab2, tab3 = st.tabs([
-    "🎙️ Advanced Audio AI",
-    "🎨 Image Studio",
-    "💳 Payment & WhatsApp"
-])
+tab1, tab2, tab3 = st.tabs(["🎨 Professional Poster", "🎙️ Audio Studio", "💳 Payment & Links"])
 
-# ================== TAB 1 : AUDIO AI ==================
 with tab1:
-    st.subheader("Professional AI Voice Generator")
-
-    col1, col2 = st.columns(2)
-
+    st.subheader("Hindi Poster Maker (With Custom Fonts)")
+    col1, col2 = st.columns([1, 1])
+    
     with col1:
-        text_input = st.text_area(
-            "Script (Hindi / English)",
-            "Namaste! Vixan AI Studio mein aapka swagat hai."
-        )
-
-        voice_name = st.selectbox(
-            "Select Voice",
-            [
-                "Adam (Deep Male)",
-                "Antoni (Friendly)",
-                "Bella (Soft Female)"
-            ]
-        )
-
-        voice_map = {
-            "Adam (Deep Male)": "pNInz6obpgDQGcFmaJgB",
-            "Antoni (Friendly)": "ErXwbc3VNb7s19Cc71v0",
-            "Bella (Soft Female)": "EXAVITQu4vr4xnSDxMaL"
-        }
+        name = st.text_input("Neta/Brand ka Naam", "Rahul Kumar")
+        hindi_slogan = st.text_input("Hindi Slogan (Khand Font)", "Aapka Vishwas, Hamara Vikas")
+        if st.button("Generate HD Poster ⚡"):
+            with st.spinner("Pehle Background ban raha hai..."):
+                # 1. Generate Background Image
+                prompt = f"Professional political background, abstract blue and saffron theme, 8k"
+                bg_url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ', '%20')}?width=1024&height=1280&nologo=true"
+                bg_res = requests.get(bg_url)
+                
+                if bg_res.status_code == 200:
+                    # 2. Add Hindi Text using Pillow
+                    final_img = add_hindi_text(bg_res.content, f"{name}\n{hindi_slogan}")
+                    st.session_state['poster'] = final_img
 
     with col2:
-        st.markdown("### 🎚️ Voice Controls")
-        stability = st.slider("Stability", 0.0, 1.0, 0.5)
-        clarity = st.slider("Clarity / Similarity", 0.0, 1.0, 0.75)
-        style = st.slider("Style Exaggeration", 0.0, 1.0, 0.0)
+        if 'poster' in st.session_state:
+            st.image(st.session_state['poster'])
+            st.download_button("Download Poster", st.session_state['poster'], "poster.png")
 
-    if st.button("🔊 Generate & Preview Audio"):
-        with st.spinner("Generating studio-quality voice..."):
-            audio, error = generate_audio(
-                text_input,
-                stability,
-                clarity,
-                style,
-                voice_map[voice_name]
-            )
-
-            if audio:
-                st.audio(audio, format="audio/mp3")
-                st.download_button(
-                    "⬇️ Download MP3",
-                    audio,
-                    "vixan_voice.mp3"
-                )
-            else:
-                st.error(f"Audio generation failed: {error}")
-
-# ================== TAB 2 : IMAGE AI ==================
-with tab2:
-    st.subheader("Hindi Prompt Image Generator")
-
-    hindi_text = st.text_input(
-        "Poster Text (Hindi)",
-        "आपका विश्वास, हमारा विकास"
-    )
-
-    style_type = st.selectbox(
-        "Visual Style",
-        ["Political", "Cinematic", "3D Render"]
-    )
-
-    if st.button("🖼️ Generate Image"):
-        prompt = (
-            f"A {style_type} poster with bold, clear Devanagari Hindi text "
-            f"'{hindi_text}', centered composition, professional lighting, "
-            f"high contrast, ultra quality, 8k"
-        )
-
-        encoded_prompt = urllib.parse.quote_plus(prompt)
-
-        image_url = (
-            f"https://image.pollinations.ai/prompt/{encoded_prompt}"
-            "?width=1024&height=1280&nologo=true"
-        )
-
-        st.image(
-            image_url,
-            caption="AI Generated Image (Hindi spelling may slightly vary)"
-        )
-
-# ================== TAB 3 : PAYMENT & WHATSAPP ==================
 with tab3:
-    st.subheader("💳 Razorpay Payment")
+    st.markdown(f"""
+    <div class="razorpay-box">
+        <h2>💎 Upgrade to Premium</h2>
+        <p>Unlock Audio Cloning & Unlimited Downloads</p>
+        <a href="{RAZORPAY_PAY_LINK}" target="_blank">
+            <button style="width:250px; cursor:pointer;">PAY VIA RAZORPAY</button>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.write("---")
+    st.subheader("WhatsApp Connectivity")
+    wa_num = st.text_input("Enter Mobile Number", "91XXXXXXXXXX")
+    if st.button("Generate Smart WhatsApp Link"):
+        link = f"https://wa.me/{wa_num}?text=Mujhe%20Vixan%20AI%20ka%20Premium%20Plan%20chahiye"
+        st.code(link)
+        st.markdown(f"[Direct Chat]({link})")
 
-    st.markdown(
-        "[![Pay Now](https://img.shields.io/badge/Pay%20Now-Razorpay-blue?style=for-the-badge)]"
-        "(https://rzp.io/l/your_link)"
-    )
-
-    st.divider()
-
-    st.subheader("📲 WhatsApp Auto Reply Link")
-
-    wa_num = st.text_input("WhatsApp Number (with country code)")
-
-    if st.button("Create WhatsApp Link"):
-        if wa_num:
-            wa_link = (
-                f"https://wa.me/{wa_num}"
-                "?text=Mujhe%20Vixan%20AI%20Premium%20chahiye"
-            )
-            st.success("WhatsApp Link Generated")
-            st.code(wa_link)
-        else:
-            st.warning("Please enter a valid WhatsApp number")
-
-# ================== SIDEBAR ==================
-st.sidebar.title("🤝 Vixan Partner Panel")
-st.sidebar.markdown("""
-**Platform Features**
-- AI Voice Studio (ElevenLabs)
-- Hindi Poster Generator
-- Razorpay Ready
-- WhatsApp Automation
-- Future Video AI Ready 🚀
-""")
+st.sidebar.title("Partner Dashboard")
+st.sidebar.success("Khand Font: Active ✅")
+st.sidebar.info("Razorpay: Connected ✅")

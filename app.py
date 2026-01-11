@@ -1,59 +1,191 @@
 import streamlit as st
 import os
-import requests
-from gtts import gTTS # Google Text-to-Speech (Free)
+import uuid
+from gtts import gTTS
 
-# --- CONFIG & THEME ---
-st.set_page_config(page_title="Vixan AI Studio Pro", layout="wide")
+# =========================
+# 1. CONFIG & PAGE THEME
+# =========================
+st.set_page_config(
+    page_title="Vixan AI Media Studio Pro v4.0",
+    page_icon="🎨",
+    layout="wide",
+)
 
-# --- SIDEBAR ---
+# -------------------------
+# Custom Premium CSS
+# -------------------------
+st.markdown("""
+<style>
+body { background-color: #0e1117; color: #ffffff; }
+.stButton>button {
+    background: linear-gradient(45deg, #FFD700, #FF8C00);
+    color: black;
+    border-radius: 12px;
+    font-weight: 700;
+    padding: 0.6rem 1.2rem;
+}
+.stRadio > div { gap: 10px; }
+.card {
+    border: 1px solid #333;
+    border-radius: 16px;
+    padding: 14px;
+    background: #161b22;
+    text-align: center;
+}
+.small-text { color: #aaa; font-size: 13px; }
+</style>
+""", unsafe_allow_html=True)
+
+# =========================
+# 2. SIDEBAR
+# =========================
 with st.sidebar:
-    st.title("🚀 Vixan Studio")
-    menu = st.radio("Menu", ["🖼️ Poster Lab", "🎙️ Voice Studio", "💳 Upgrade to Pro"])
+    st.image(
+        "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
+        width=80
+    )
+    st.markdown("## **Vixan Pro v4.0**")
+    st.caption("AI Media Studio for Branding")
+    menu = st.radio(
+        "Select Module",
+        [
+            "🏠 Dashboard",
+            "🖼️ Poster Lab (50+ Designs)",
+            "🎙️ Advanced Voice Studio",
+            "🎞️ Video Clone Center",
+        ],
+    )
 
-# --- 1. POSTER LAB (Free & Pro) ---
-if menu == "🖼️ Poster Lab":
-    st.header("🖼️ AI Poster Generator")
-    prompt = st.text_area("Aapko kaisa design chahiye? (English me likhein):", "Political poster background, abstract orange and green, 4k")
-    
+# =========================
+# 3. DASHBOARD
+# =========================
+if menu == "🏠 Dashboard":
+    st.markdown("## 🚀 Vixan AI Media Studio")
+    st.info(
+        "All-in-One AI Platform for Political, Business & Festival Branding.\n\n"
+        "• Poster Design\n"
+        "• AI Voice\n"
+        "• Poster-to-Video\n"
+        "• Social Media Ready Output"
+    )
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("<div class='card'>🎨<h4>Poster Lab</h4><p class='small-text'>50+ Pro Templates</p></div>", unsafe_allow_html=True)
+    with col2:
+        st.markdown("<div class='card'>🎙️<h4>Voice Studio</h4><p class='small-text'>Hindi AI Voice</p></div>", unsafe_allow_html=True)
+    with col3:
+        st.markdown("<div class='card'>🎞️<h4>Video Clone</h4><p class='small-text'>Talking Poster</p></div>", unsafe_allow_html=True)
+
+# =========================
+# 4. POSTER LAB
+# =========================
+elif menu == "🖼️ Poster Lab (50+ Designs)":
+    st.markdown("## 🖼️ Poster & Sticker Lab")
+
+    category = st.selectbox(
+        "Choose Design Category",
+        ["Political (Chunav)", "Festival (Tyohar)", "Business", "Birthday"],
+    )
+
+    st.markdown("### 🎯 Select Base Template")
+
+    templates = [
+        "Political Design 01",
+        "Political Design 02",
+        "Festival Design 03",
+        "Business Design 04",
+        "Birthday Design 05",
+    ]
+
+    cols = st.columns(3)
+    for i, name in enumerate(templates):
+        with cols[i % 3]:
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.image(
+                f"https://via.placeholder.com/300x400.png?text={name.replace(' ', '+')}",
+                use_container_width=True,
+            )
+            if st.button(f"Select {name}", key=name):
+                st.session_state["selected_template"] = name
+                st.success(f"{name} selected")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+# =========================
+# 5. ADVANCED VOICE STUDIO
+# =========================
+elif menu == "🎙️ Advanced Voice Studio":
+    st.markdown("## 🎙️ Advanced AI Voice Studio")
+
+    text = st.text_area(
+        "Hindi Text Input",
+        "नमस्ते, यह Vixan AI Media Studio की प्रोफेशनल आवाज़ है।",
+        height=150,
+    )
+
+    st.markdown("### ⚙️ Voice Controls")
+
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("🎨 Generate Free Poster (Pollinations)"):
-            with st.spinner("Free AI design bana raha hai..."):
-                # Pollinations AI - 100% Free
-                free_url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ', '%20')}?width=1024&height=1024&nologo=true"
-                st.image(free_url, caption="Free AI Generated Poster")
-                st.info("Ye Pollinations AI dwara banaya gaya hai (Free).")
+        speed = st.slider("Speech Speed", 0.5, 2.0, 1.0)
+    with col2:
+        clarity = st.slider("Voice Clarity", 0.0, 1.0, 0.8)
+
+    if st.button("🔊 Generate AI Voice"):
+        with st.spinner("AI voice processing..."):
+            filename = f"voice_{uuid.uuid4().hex}.mp3"
+            tts = gTTS(text=text, lang="hi", slow=(speed < 1.0))
+            tts.save(filename)
+
+            st.audio(filename)
+            st.success("Voice generated successfully!")
+
+            with open(filename, "rb") as f:
+                st.download_button(
+                    "⬇️ Download Voice",
+                    f,
+                    file_name="vixan_ai_voice.mp3",
+                    mime="audio/mp3",
+                )
+
+# =========================
+# 6. VIDEO CLONE CENTER
+# =========================
+elif menu == "🎞️ Video Clone Center":
+    st.markdown("## 🎞️ Poster-to-Video Clone Center")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        poster = st.file_uploader(
+            "Upload Poster Image",
+            type=["jpg", "png", "jpeg"],
+        )
+
+        voice = st.selectbox(
+            "Select AI Voice",
+            ["Latest Generated Voice", "Sample Voice"],
+        )
 
     with col2:
-        if st.button("🔥 Generate Pro Poster (Segmind)"):
-            st.warning("Iske liye Segmind API Key ki zaroorat hai.")
-            # Segmind logic yahan (Jo pehle diya tha)
-
-# --- 2. VOICE STUDIO (Free & Pro) ---
-elif menu == "🎙️ Voice Studio":
-    st.header("🎙️ AI Voice Studio")
-    text_input = st.text_area("Yahan Hindi text likhein:", "नमस्ते, आपका स्वागत है।")
-    
-    v_col1, v_col2 = st.columns(2)
-    
-    with v_col1:
-        if st.button("📢 Generate Free Voice (Google)"):
-            if text_input:
-                with st.spinner("Google AI voice bana raha hai..."):
-                    tts = gTTS(text=text_input, lang='hi')
-                    tts.save("free_voice.mp3")
-                    st.audio("free_voice.mp3")
-                    st.success("Google Voice Ready! (Unlimited Free)")
+        if st.button("🎬 Generate Talking Poster"):
+            if poster is None:
+                st.warning("Please upload a poster image first.")
             else:
-                st.error("Pehle kuch likhiye!")
+                st.info("AI Video Engine Processing...")
+                st.video("https://www.w3schools.com/html/mov_bbb.mp4")
 
-    with v_col2:
-        if st.button("💎 Generate Pro Voice (ElevenLabs)"):
-            st.warning("Premium voice ke liye ElevenLabs key chahiye.")
+                st.download_button(
+                    "📥 Download Final Video",
+                    data=b"demo",
+                    file_name="vixan_talking_poster.mp4",
+                )
 
-# --- 3. UPGRADE SECTION ---
-elif menu == "💳 Upgrade to Pro":
-    st.title("Pro Features se zyada kamayein!")
-    st.write("Free version me normal quality milti hai. Pro me HD aur asli insani awaaz milti hai.")
-    st.link_button("Buy Pro Plan - ₹199", "https://rzp.io/l/vixan_pro")
+# =========================
+# FOOTER
+# =========================
+st.markdown(
+    "<hr><center class='small-text'>© 2026 Vixan AI Media Studio • Powered by Digitech</center>",
+    unsafe_allow_html=True,
+)

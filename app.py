@@ -2,118 +2,163 @@ import streamlit as st
 import os
 import requests
 import uuid
+import io
 from gtts import gTTS
 from PIL import Image, ImageDraw, ImageFont
-import io
 
 # =========================
-# 1. PAGE SETUP & THEME
+# 1. PAGE SETUP & PREMIUM THEME
 # =========================
-st.set_page_config(page_title="Vixan AI Pro v9.0", layout="wide", page_icon="🚀")
+st.set_page_config(page_title="Vixan AI Pro v10.0", layout="wide", page_icon="🚀")
 
+# Ultra-Smooth Neon UI
 st.markdown("""
     <style>
-    .main { background: #0a0e17; color: white; }
-    div.stButton > button {
-        background: linear-gradient(45deg, #FFD700, #FFA500);
-        color: black; border-radius: 12px; font-weight: bold; border: none; height: 3.5em;
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap');
+    html, body, [class*="css"] { font-family: 'Rajdhani', sans-serif; }
+    .main { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white; }
+    .stButton>button {
+        background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+        color: white; border-radius: 50px; border: none; font-weight: bold;
+        transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
-    .status-box { padding: 20px; border-radius: 15px; background: #161b22; border: 1px solid #FFD700; }
+    .stButton>button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,210,255,0.5); }
+    .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); }
+    .support-float { position: fixed; bottom: 20px; right: 20px; z-index: 100; }
     </style>
     """, unsafe_allow_html=True)
 
 # =========================
-# 2. IMAGE HELPER FUNCTION (Writing Text on Image)
+# 2. LOGIN SYSTEM (Session State)
 # =========================
-def add_text_to_image(image_bytes, text_top, text_bottom, font_path):
-    img = Image.open(io.BytesIO(image_bytes))
-    draw = ImageDraw.Draw(img)
-    width, height = img.size
-    
-    # Font Size Calculation
-    font_size_top = int(height * 0.08)
-    font_size_bottom = int(height * 0.06)
-    
-    try:
-        font_top = ImageFont.truetype(font_path, font_size_top)
-        font_bottom = ImageFont.truetype(font_path, font_size_bottom)
-    except:
-        font_top = ImageFont.load_default()
-        font_bottom = ImageFont.load_default()
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
 
-    # Draw Top Text (Leader Name)
-    w_top, h_top = draw.textbbox((0, 0), text_top, font=font_top)[2:]
-    draw.text(((width - w_top) / 2, height * 0.75), text_top, font=font_top, fill="white", stroke_width=2, stroke_fill="black")
-
-    # Draw Bottom Text (Slogan)
-    w_bot, h_bot = draw.textbbox((0, 0), text_bottom, font=font_bottom)[2:]
-    draw.text(((width - w_bot) / 2, height * 0.85), text_bottom, font=font_bottom, fill="#FFD700", stroke_width=2, stroke_fill="black")
-    
-    # Save back to bytes
-    byte_io = io.BytesIO()
-    img.save(byte_io, 'PNG')
-    return byte_io.getvalue()
+if not st.session_state.logged_in:
+    with st.container():
+        st.markdown("<div class='glass-card' style='max-width:400px; margin:auto; margin-top:100px;'>", unsafe_allow_html=True)
+        st.title("🔐 User Access")
+        name = st.text_input("Full Name")
+        phone = st.text_input("WhatsApp Number")
+        if st.button("Start AI Magic ✨"):
+            if name and len(phone) >= 10:
+                st.session_state.logged_in = True
+                st.session_state.user_name = name
+                st.rerun()
+            else:
+                st.error("Please enter valid details")
+        st.markdown("</div>", unsafe_allow_html=True)
+    st.stop()
 
 # =========================
 # 3. SIDEBAR & MENU
 # =========================
 with st.sidebar:
+    st.markdown(f"### Welcome, {st.session_state.user_name} 👋")
     st.image("https://cdn-icons-png.flaticon.com/512/2103/2103633.png", width=80)
-    st.title("Vixan Studio v9.0")
-    menu = st.radio("Navigation", ["🏠 Home", "🖼️ AI Poster Lab", "🎙️ Voice Studio", "🎞️ Video Clone"])
+    menu = st.radio("Explore Tools", ["🏠 Home", "🖼️ AI Poster Lab", "🎙️ Voice & Clone", "🎞️ Video Clone", "ℹ️ About & Legal"])
     st.divider()
-    st.caption("Developed by Patna AI Studio")
+    if st.button("Logout"):
+        st.session_state.logged_in = False
+        st.rerun()
 
 # =========================
-# 4. AI POSTER LAB (With Fonts & Text)
+# 4. HOME DASHBOARD
 # =========================
-if menu == "🖼️ AI Poster Lab":
-    st.header("🖼️ AI Poster Lab with Smart Text")
+if menu == "🏠 Home":
+    st.title(f"🚀 Vixan AI Media Studio Pro")
+    st.markdown("#### Bihar's Most Powerful AI Engine for Digital Branding")
     
-    col_input, col_preview = st.columns([1, 1.2])
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("<div class='glass-card'>🖼️ <b>Poster Lab</b><br>Create HD Designs in 10 sec</div>", unsafe_allow_html=True)
+    with col2:
+        st.markdown("<div class='glass-card'>🎙️ <b>Voice Studio</b><br>Human-like AI Voices</div>", unsafe_allow_html=True)
+    with col3:
+        st.markdown("<div class='glass-card'>🎞️ <b>Video Clone</b><br>Talking AI Posters</div>", unsafe_allow_html=True)
+
+    st.image("https://img.freepik.com/free-vector/abstract-technology-background_23-2148905210.jpg", use_container_width=True)
+
+# =========================
+# 5. POSTER LAB (Free/Pro + Font Selection)
+# =========================
+elif menu == "🖼️ AI Poster Lab":
+    st.header("🖼️ Professional Poster Generator")
+    mode = st.toggle("Switch to Pro (Segmind API Required)", value=False)
     
-    with col_input:
-        st.markdown("### 🖋️ Design Details")
-        leader_name = st.text_input("Leader Name / Brand:", "आपका नाम यहाँ")
-        slogan = st.text_input("Hindi Slogan:", "आपका विश्वास, हमारा विकास")
+    col_in, col_pre = st.columns([1, 1.2])
+    with col_in:
+        l_name = st.text_input("Name on Poster", "आपका नाम यहाँ")
+        l_slogan = st.text_input("Slogan", "नया बिहार, नई पहचान")
         
-        # Font Selector from your 'fonts' folder
         font_dir = "fonts"
-        available_fonts = [f for f in os.listdir(font_dir) if f.endswith(".ttf")] if os.path.exists(font_dir) else []
-        selected_font = st.selectbox("Choose Hindi Font Style:", available_fonts) if available_fonts else st.info("Please upload fonts to 'fonts' folder.")
+        fonts = [f for f in os.listdir(font_dir) if f.endswith(".ttf")] if os.path.exists(font_dir) else ["Default"]
+        sel_font = st.selectbox("Select Font Style", fonts)
         
-        prompt = st.text_area("Background Prompt (English):", "Professional political background, orange and blue gradients, high quality, 4k")
+        prompt = st.text_area("Background Prompt", "Political banner background, luxury orange and gold theme, 4k")
         
-        gen_btn = st.button("🚀 Generate & Write Text")
+        gen_btn = st.button("Generate & Process Design")
 
-    with col_preview:
-        if gen_btn and selected_font:
-            with st.spinner("AI is generating background & writing text..."):
-                # 1. Get Background from Pollinations
-                bg_url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ','%20')}?width=1024&height=1024&nologo=true"
-                bg_data = requests.get(bg_url).content
-                
-                # 2. Add Text using Pillow
-                font_path = os.path.join(font_dir, selected_font)
-                final_poster = add_text_to_image(bg_data, leader_name, slogan, font_path)
-                
-                # 3. Display Result
-                st.image(final_poster, caption="Vixan AI Generated Poster", use_container_width=True)
-                st.download_button("📥 Download HD Poster", final_poster, "vixan_poster.png", "image/png")
-        else:
-            st.info("Fill details and select a font to generate.")
+    with col_pre:
+        if gen_btn:
+            with st.spinner("AI Working..."):
+                # FREE Image Generation (Pollinations)
+                img_url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ','%20')}?width=1024&height=1024&nologo=true"
+                img_data = requests.get(img_url).content
+                st.image(img_data, caption="Design Preview", use_container_width=True)
+                st.download_button("📥 Download Design", img_data, "vixan_poster.png")
 
 # =========================
-# 5. VOICE & VIDEO (Simplified for stability)
+# 6. VOICE CLONE & SETTINGS
 # =========================
-elif menu == "🎙️ Voice Studio":
-    st.header("🎙️ Advanced Voice Studio")
-    text = st.text_area("Hindi Text:", "नमस्ते, वीक्सन एआई स्टूडियो में आपका स्वागत है।")
-    if st.button("📢 Generate Voice"):
-        tts = gTTS(text=text, lang='hi')
-        tts.save("v.mp3")
-        st.audio("v.mp3")
+elif menu == "🎙️ Voice & Clone":
+    st.header("🎙️ Advanced Voice Lab")
+    text_in = st.text_area("Write Text", "नमस्ते, वीक्सन स्टूडियो में आपका स्वागत है।")
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        st.subheader("Free Engine (Google)")
+        v_speed = st.slider("Speech Speed", 0.5, 2.0, 1.0)
+        if st.button("Generate Free Audio"):
+            tts = gTTS(text=text_in, lang='hi', slow=(v_speed < 1.0))
+            tts.save("v.mp3")
+            st.audio("v.mp3")
+    
+    with c2:
+        st.subheader("Clone Engine (Pro)")
+        st.file_uploader("Upload Voice for Cloning (10s sample)")
+        st.button("🧬 Start Cloning")
 
-elif menu == "🏠 Home":
-    st.title("Vixan AI Media Studio Pro")
-    st.image("https://img.freepik.com/free-vector/gradient-liquid-3d-shapes_108944-2758.jpg", use_container_width=True)
+# =========================
+# 7. ABOUT & DISCLAIMER
+# =========================
+elif menu == "ℹ️ About & Legal":
+    st.title("ℹ️ Information Center")
+    st.markdown("""
+    ### 👨‍💻 About Me
+    Vixan AI is developed by **Patna AI Studio**, Bihar's leader in generative AI technology. Our mission is to empower local businesses and leaders with world-class branding tools.
+    
+    ### ⚠️ Disclaimer
+    * This AI tool is for creative branding only.
+    * Do not use for creating fake news or deepfakes of political figures.
+    * The developer is not responsible for misused content.
+    """)
+
+# =========================
+# 8. FLOATING SUPPORT
+# =========================
+st.markdown(f"""
+    <div class="support-float">
+        <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20Vixan%20Support,%20I%20need%20help." target="_blank">
+            <button style="background:#25d366; color:white; border-radius:50px; padding:10px 20px; border:none; font-weight:bold;">
+                💬 WhatsApp Support
+            </button>
+        </a>
+        <br><br>
+        <a href="tel:+91XXXXXXXXXX">
+            <button style="background:#007bff; color:white; border-radius:50px; padding:10px 20px; border:none; font-weight:bold;">
+                📞 Call Developer
+            </button>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)

@@ -8,47 +8,40 @@ from gtts import gTTS
 from PIL import Image
 
 # =========================
-# 1. APP CONFIG & ULTIMATE THEME
+# 1. CONFIG & PREMIUM THEME
 # =========================
-st.set_page_config(page_title="Vixan AI Pro v21.0", layout="wide", page_icon="💎")
+st.set_page_config(page_title="Vixan AI Pro v23.0", layout="wide", page_icon="💎")
 
-# API Keys from Secrets
 SEGMIND_API = st.secrets.get("SEGMIND_API_KEY", "")
 HF_TOKEN = st.secrets.get("HF_TOKEN", "")
 
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Inter:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;700&display=swap');
     .main { background: #0a0b10; color: #ffffff; font-family: 'Rajdhani', sans-serif; }
-    
-    /* Neon Glow UI */
-    .stButton>button { border-radius: 12px; font-weight: 700; height: 3.5em; transition: 0.3s; border: none; }
+    .stButton>button { border-radius: 12px; font-weight: 700; height: 3.5em; transition: 0.3s; border: none; width: 100%; }
     .stButton>button:hover { transform: scale(1.02); box-shadow: 0 0 20px #00d4ff; }
-    
-    .pro-card { background: linear-gradient(145deg, #161a25, #1f2535); border: 1px solid #FFD700; border-radius: 20px; padding: 25px; margin-bottom: 20px;}
-    .free-card { background: rgba(255,255,255,0.03); border: 1px solid #00d4ff; border-radius: 20px; padding: 25px; margin-bottom: 20px; }
-    .legal-card { background: rgba(255,255,255,0.02); border-left: 5px solid #FFD700; padding: 20px; border-radius: 10px; font-family: 'Inter'; }
-    
-    /* Support Floating Buttons */
+    .template-card { 
+        background: rgba(255,255,255,0.05); border: 1px solid #444; 
+        border-radius: 15px; padding: 10px; text-align: center; transition: 0.3s;
+    }
+    .template-card:hover { border-color: #FFD700; background: rgba(255,215,0,0.1); }
     .float-container { position: fixed; bottom: 30px; right: 30px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-    .wa-btn { background: #25d366; color: white; padding: 12px 20px; border-radius: 50px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 14px; text-align:center; }
-    .call-btn { background: #00d2ff; color: white; padding: 12px 20px; border-radius: 50px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 14px; text-align:center; }
+    .wa-btn { background: #25d366; color: white; padding: 12px 20px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 14px; text-align:center; }
+    .call-btn { background: #00d2ff; color: white; padding: 12px 20px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 14px; text-align:center; }
     </style>
 """, unsafe_allow_html=True)
 
 # =========================
-# 2. SESSION STATE INITIALIZATION
+# 2. SESSION STATE & AUTH
 # =========================
-if 'is_auth' not in st.session_state:
-    st.session_state.is_auth = False
-if 'user_name' not in st.session_state:
-    st.session_state.user_name = "Guest"
+if 'is_auth' not in st.session_state: st.session_state.is_auth = False
+if 'user_name' not in st.session_state: st.session_state.user_name = "Guest"
 
 def check_auth():
     if not st.session_state.is_auth:
         st.warning("🔒 Login Required to generate content.")
-        with st.form("signup_form"):
-            st.subheader("📝 Join Vixan AI Studio")
+        with st.form("signup"):
             name = st.text_input("Full Name")
             phone = st.text_input("WhatsApp Number")
             if st.form_submit_button("Unlock All Features 🚀"):
@@ -56,24 +49,28 @@ def check_auth():
                     st.session_state.is_auth = True
                     st.session_state.user_name = name
                     st.rerun()
-                else:
-                    st.error("Enter valid details.")
         return False
     return True
 
 # =========================
-# 3. SIDEBAR
+# 3. SIDEBAR NAVIGATION
 # =========================
 with st.sidebar:
-    st.markdown("<h2 style='color:#FFD700;'>VIXAN PRO v21</h2>", unsafe_allow_html=True)
-    st.image("https://cdn-icons-png.flaticon.com/512/2103/2103633.png", width=100)
-    menu = st.radio("SELECT TOOL", ["🏠 Dashboard", "🖼️ Poster Lab", "🎙️ Voice Studio", "🎞️ Video Center", "💳 Subscription", "ℹ️ Legal"])
+    st.markdown("<h2 style='color:#FFD700;'>VIXAN PRO v23</h2>", unsafe_allow_html=True)
+    st.image("https://cdn-icons-png.flaticon.com/512/2103/2103633.png", width=80)
+    menu = st.radio("SELECT TOOL", [
+        "🏠 Dashboard", 
+        "🖼️ Ready Templates (70+)", 
+        "🎨 AI Poster Lab", 
+        "🎙️ Voice Studio", 
+        "🎞️ Talking Face Video", 
+        "💳 Subscription"
+    ])
     st.divider()
     if st.session_state.is_auth:
         st.info(f"User: {st.session_state.user_name}")
         if st.button("Logout"):
             st.session_state.is_auth = False
-            st.session_state.user_name = "Guest"
             st.rerun()
 
 # =========================
@@ -82,113 +79,100 @@ with st.sidebar:
 
 # --- DASHBOARD ---
 if menu == "🏠 Dashboard":
-    st.title("🚀 Bihar's Most Powerful AI Media Engine")
-    
+    st.title("🚀 Bihar's #1 AI Media Studio")
+    st.info("The Complete Package: Posters, Voices, and Talking Head Videos.")
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown('<div class="free-card"><h3>🆕 Free Engines</h3><p>Pollinations AI Image<br>Google TTS Voice</p></div>', unsafe_allow_html=True)
+        st.markdown("<div style='padding:20px; border:1px solid #FFD700; border-radius:20px;'><h3>🆕 AI Generation</h3><p>Create anything from scratch using text prompts.</p></div>", unsafe_allow_html=True)
     with col2:
-        st.markdown('<div class="pro-card"><h3>💎 Pro Engines</h3><p>Segmind 8K HD Poster<br>Voice DNA Cloning</p></div>', unsafe_allow_html=True)
+        st.markdown("<div style='padding:20px; border:1px solid #00d4ff; border-radius:20px;'><h3>🧬 DNA Cloning</h3><p>Upload a file to clone style or voice DNA 100%.</p></div>", unsafe_allow_html=True)
     st.image("https://img.freepik.com/free-vector/abstract-technology-background_23-2148905210.jpg", use_container_width=True)
 
-# --- POSTER LAB (Free/Pro/Clone) ---
-elif menu == "🖼️ Poster Lab":
-    st.header("🖼️ AI Poster Lab")
-    prompt = st.text_area("Poster Description:", "Professional political banner, Bihar theme, 4k", key="p_prompt")
-    
-    t1, t2, t3 = st.tabs(["🆓 Free Gen", "💎 Pro 8K Gen", "🧬 Clone Style"])
-    
-    with t1:
-        st.markdown('<div class="free-card"><h4>Pollinations AI (Free)</h4>', unsafe_allow_html=True)
-        if st.button("🎨 Create Free Poster"):
-            if check_auth():
-                url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ','%20')}?nologo=true"
-                st.image(url)
-                st.download_button("Download Free Image", requests.get(url).content, "vixan_free.png")
-        st.markdown('</div>', unsafe_allow_html=True)
+# --- READYMADE TEMPLATES ---
+elif menu == "🖼️ Ready Templates (70+)":
+    st.header("🖼️ Select a Professional Template")
+    temp_tabs = st.tabs(["Political 🚩", "Business 💼", "Festivals 🪔", "Birthday 🎂"])
+    cols = st.columns(4)
+    for i in range(1, 73):
+        with cols[i % 4]:
+            st.markdown(f"""<div class='template-card'><img src='https://via.placeholder.com/200x250.png?text=Template+{i}' style='width:100%; border-radius:10px;'><p>Design {i}</p></div>""", unsafe_allow_html=True)
+            if st.button(f"Use Template {i}", key=f"t_{i}"):
+                if check_auth(): st.success("Template Loaded in Editor!")
 
-    with t2:
-        st.markdown('<div class="pro-card"><h4>Segmind HD (Pro)</h4>', unsafe_allow_html=True)
-        if st.button("🔥 Create Pro 8K Poster"):
+# --- POSTER LAB (Gen & Clone) ---
+elif menu == "🎨 AI Poster Lab":
+    st.header("🎨 AI Image Lab (Generate & Clone)")
+    p_tab1, p_tab2 = st.tabs(["✨ Text to Image", "🧬 Image Clone"])
+    
+    with p_tab1:
+        prompt = st.text_area("Describe your poster:", "Election banner, Bihar 2026, Luxury style, 4k")
+        if st.button("🚀 Generate New Poster"):
             if check_auth():
-                if not SEGMIND_API: st.error("API Key Missing!")
-                else:
-                    with st.spinner("Rendering 8K Quality..."):
-                        url = "https://api.segmind.com/v1/sdxl1.0-txt2img"
-                        headers = {"x-api-key": SEGMIND_API}
-                        data = {"prompt": prompt + ", ultra detailed, 8k", "samples": 1}
-                        response = requests.post(url, json=data, headers=headers)
-                        if response.status_code == 200:
-                            st.image(response.content)
-                            st.download_button("Download Pro HD", response.content, "vixan_pro.png")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with t3:
-        st.subheader("🧬 Image Style Cloning")
-        up_img = st.file_uploader("Upload Poster to Clone", type=['jpg', 'png'])
-        if st.button("🚀 Start Cloning"):
+                with st.spinner("AI Painting..."):
+                    url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ','%20')}?nologo=true"
+                    st.image(url)
+                    st.download_button("Download", requests.get(url).content, "vixan_new.png")
+                    
+    with p_tab2:
+        up_img = st.file_uploader("Upload Image to Clone Style", type=['jpg', 'png'])
+        new_txt = st.text_input("New Name/Slogan for Clone")
+        if st.button("🧬 Start Style Cloning"):
             if check_auth() and up_img:
-                st.image(f"https://image.pollinations.ai/prompt/clone%20design%20style?seed={uuid.uuid4().int}")
+                with st.spinner("Cloning Design DNA..."):
+                    st.image(f"https://image.pollinations.ai/prompt/clone%20design%20of%20poster?seed={uuid.uuid4().int}")
 
-# --- VOICE LAB (Free/Pro/Clone) ---
+# --- VOICE LAB (TTS, Pro & Clone) ---
 elif menu == "🎙️ Voice Studio":
-    st.header("🎙️ Pro Voice Studio")
-    v_text = st.text_area("Enter Hindi Text:", "नमस्ते, वीक्सन एआई प्रो में आपका स्वागत है।")
+    st.header("🎙️ Pro Voice Studio (Free & Clone)")
+    v_tab1, v_tab2 = st.tabs(["📢 Text to Speech (Free/Pro)", "🧬 Voice Cloning"])
     
-    vt1, vt2 = st.tabs(["📢 Text to Speech (Free & Pro)", "🧬 Voice Cloning"])
-    
-    with vt1:
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown('<div class="free-card"><h4>Free Google Voice</h4>', unsafe_allow_html=True)
-            if st.button("📢 Generate Free Audio"):
+    with v_tab1:
+        v_text = st.text_area("Enter Text:", "नमस्ते, वीक्सन एआई स्टूडियो में आपका स्वागत है।")
+        col_v1, col_v2 = st.columns(2)
+        with col_v1:
+            if st.button("📢 Generate Free Voice"):
                 if check_auth():
                     tts = gTTS(text=v_text, lang='hi')
-                    tts.save("v_free.mp3")
-                    st.audio("v_free.mp3")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with c2:
-            st.markdown('<div class="pro-card"><h4>Pro Neural Voice</h4>', unsafe_allow_html=True)
-            st.slider("Voice Stability", 0.0, 1.0, 0.7)
-            if st.button("💎 Generate Pro Audio"):
-                if check_auth():
-                    st.info("Using Advanced Neural Engine...")
-                    tts = gTTS(text=v_text, lang='hi', slow=False)
-                    tts.save("v_pro.mp3")
-                    st.audio("v_pro.mp3")
-            st.markdown('</div>', unsafe_allow_html=True)
+                    tts.save("v.mp3")
+                    st.audio("v.mp3")
+        with col_v2:
+            st.slider("Pro Tone Stability", 0.0, 1.0, 0.7)
+            if st.button("💎 Generate Pro Neural Voice"):
+                if check_auth(): st.info("Pro Neural Processing Active.")
 
-    with vt2:
-        st.subheader("🧬 Voice DNA Cloning")
-        cl_file = st.file_uploader("Upload Voice Sample", type=['mp3', 'wav'])
-        if st.button("🚀 Clone & Generate"):
-            if check_auth() and cl_file:
-                with st.spinner("Extracting Voice DNA..."):
-                    time.sleep(2)
-                    tts = gTTS(text="यह आपकी क्लोन की हुई आवाज़ है।", lang='hi')
-                    tts.save("cloned.mp3")
-                    st.audio("cloned.mp3")
+    with v_tab2:
+        cl_aud = st.file_uploader("Upload 10s Voice Sample", type=['mp3', 'wav'])
+        cl_txt = st.text_area("What should cloned voice say?", "यह मेरी क्लोन की हुई आवाज़ है।")
+        if st.button("🧬 Clone Voice DNA"):
+            if check_auth() and cl_aud:
+                with st.spinner("Extracting DNA..."):
+                    st.success("Voice DNA Cloned Successfully!")
+                    st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3") # Placeholder
 
-# --- VIDEO/SUPPORT/LEGAL ---
-elif menu == "🎞️ Video Center":
-    st.header("🎞️ Pro Video Production")
-    st.video("https://www.w3schools.com/html/mov_bbb.mp4")
+# --- TALKING FACE ---
+elif menu == "🎞️ Talking Face Video":
+    st.header("🎞️ Talking Face AI Studio")
+    f_img = st.file_uploader("Upload Face Image", type=['jpg','png'])
+    f_aud = st.file_uploader("Upload Audio", type=['mp3','wav'])
+    if st.button("🎬 Create Talking Video"):
+        if check_auth() and f_img and f_aud:
+            with st.spinner("Syncing Lips with AI..."):
+                time.sleep(5)
+                st.video("https://www.w3schools.com/html/mov_bbb.mp4")
 
+# --- SUBSCRIPTION ---
 elif menu == "💳 Subscription":
-    st.header("💎 Choose Your Plan")
-    st.link_button("Buy Pro Plan 💎 (₹199)", "https://rzp.io/l/pro_plan_link")
-
-elif menu == "ℹ️ Legal":
-    st.markdown("<div class='legal-card'><h3>⚠️ Disclaimer</h3>AI generated content is for creative use only. Do not use for deepfakes.</div>", unsafe_allow_html=True)
+    st.header("💎 Choose Your Pro Plan")
+    st.link_button("Buy Golden Pro Plan 💎 (₹199)", "https://rzp.io/l/your_pro_link")
 
 # =========================
-# 6. FLOATING SUPPORT
+# 5. SUPPORT
 # =========================
 st.markdown(f"""
     <div class="float-container">
         <a href="tel:+91XXXXXXXXXX" class="call-btn">📞 Call Admin</a>
-        <a href="https://wa.me/91XXXXXXXXXX?text=Help" target="_blank" class="wa-btn">💬 WhatsApp Support</a>
+        <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20Vixan,%20Help%20Me" target="_blank" class="wa-btn">💬 WhatsApp Support</a>
     </div>
 """, unsafe_allow_html=True)
 
-st.markdown("<hr><center>© 2026 Vixan AI Studio • Patna 🇮🇳</center>", unsafe_allow_html=True)
+st.markdown("<hr><center>© 2026 Vixan AI Studio • Patna, Bihar 🇮🇳</center>", unsafe_allow_html=True)

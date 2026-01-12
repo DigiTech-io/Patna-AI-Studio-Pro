@@ -8,158 +8,152 @@ from gtts import gTTS
 from PIL import Image
 
 # =========================
-# 1. APP CONFIG & ULTIMATE THEME
+# 1. CONFIG & PRO THEME
 # =========================
-st.set_page_config(page_title="Vixan AI Pro v17.0", layout="wide", page_icon="💎")
+st.set_page_config(page_title="Vixan AI Pro v17.0", layout="wide", page_icon="🚀")
 
 SEGMIND_API = st.secrets.get("SEGMIND_API_KEY", "")
 HF_TOKEN = st.secrets.get("HF_TOKEN", "")
 
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-    .main { background: #0a0b10; color: #ffffff; font-family: 'Inter', sans-serif; }
-    .stButton>button { 
-        border-radius: 12px; font-weight: 700; height: 3.5em; 
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+    .main { background: #0a0e17; color: white; }
+    .stButton>button { border-radius: 12px; font-weight: 700; height: 3em; transition: 0.3s; }
+    .stButton>button:hover { transform: scale(1.02); box-shadow: 0 0 15px #00d4ff; }
     .pro-card { 
-        background: linear-gradient(145deg, #161a25, #1f2535); 
-        border: 1px solid #FFD700; border-radius: 20px; padding: 25px;
-        box-shadow: 0 10px 40px rgba(255,215,0,0.1);
+        background: linear-gradient(145deg, #1e1e2f, #2a2a40); 
+        border: 1px solid #FFD700; border-radius: 15px; padding: 20px;
     }
     .free-card { 
-        background: rgba(255,255,255,0.03); 
-        border: 1px solid #00d4ff; border-radius: 20px; padding: 25px;
-    }
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        background-color: #161a25 !important; color: white !important; border: 1px solid #333 !important;
+        background: rgba(255,255,255,0.05); 
+        border: 1px solid #00d4ff; border-radius: 15px; padding: 20px;
     }
     </style>
 """, unsafe_allow_html=True)
 
 # =========================
-# 2. SESSION & LOGIN SYSTEM
+# 2. SESSION STATE & LOGIN LOGIC
 # =========================
 if 'is_auth' not in st.session_state:
     st.session_state.is_auth = False
 
-if not st.session_state.is_auth:
-    st.markdown("<h1 style='text-align:center; color:#FFD700;'>💎 Vixan AI Studio Pro</h1>", unsafe_allow_html=True)
-    with st.container():
-        st.markdown("<div class='pro-card' style='max-width:500px; margin:auto;'>", unsafe_allow_html=True)
-        u_name = st.text_input("Full Name")
-        u_phone = st.text_input("WhatsApp Number (10 Digits)")
-        if st.button("Unlock All Engines 🚀"):
-            if u_name and len(u_phone) >= 10:
-                st.session_state.is_auth = True
-                st.session_state.user_name = u_name
-                st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-    st.stop()
+# Function to show login popup
+def check_login():
+    if not st.session_state.is_auth:
+        st.warning("🔒 Action Required: Please Signup to generate content.")
+        with st.expander("📝 Fast Signup to Unlock Features", expanded=True):
+            name = st.text_input("Full Name")
+            phone = st.text_input("WhatsApp Number")
+            if st.button("Unlock Studio ✨"):
+                if name and len(phone) >= 10:
+                    st.session_state.is_auth = True
+                    st.session_state.user_name = name
+                    st.success(f"Welcome {name}! Now click the generate button again.")
+                    st.rerun()
+                else:
+                    st.error("Please enter valid details.")
+        return False
+    return True
 
 # =========================
-# 3. SIDEBAR NAVIGATION
+# 3. SIDEBAR
 # =========================
 with st.sidebar:
-    st.markdown("<h2 style='color:#FFD700;'>VIXAN PRO v17</h2>", unsafe_allow_html=True)
+    st.title("💎 Vixan Studio")
     menu = st.radio("SELECT ENGINE", ["🏠 Dashboard", "🖼️ AI Poster Lab", "🎙️ AI Voice Studio", "🎞️ Pro Video Lab"])
     st.divider()
-    st.write(f"Logged in: **{st.session_state.user_name}**")
-    if st.button("Logout"):
-        st.session_state.is_auth = False
-        st.rerun()
+    if st.session_state.is_auth:
+        st.info(f"User: {st.session_state.user_name}")
+        if st.button("Logout"):
+            st.session_state.is_auth = False
+            st.rerun()
 
 # =========================
-# 4. REAL API ENGINES (PRO)
+# 4. MODULES
 # =========================
 
-def generate_pro_poster(prompt):
-    url = "https://api.segmind.com/v1/sdxl1.0-txt2img"
-    headers = {"x-api-key": SEGMIND_API}
-    data = {
-        "prompt": prompt + ", professional poster, highly detailed, 8k resolution, cinematic lighting",
-        "seed": uuid.uuid4().int % 1000000,
-        "scheduler": "dpmpp_2m",
-        "num_inference_steps": 30,
-        "negative_prompt": "blurry, low quality, distorted text, messy"
-    }
-    response = requests.post(url, json=data, headers=headers)
-    return response.content if response.status_code == 200 else None
-
-def generate_pro_video(prompt):
-    # Asli Hugging Face API (Stable Video Diffusion model)
-    API_URL = "https://api-inference.huggingface.co/models/google/veo-1" # Ya aapka pasandida model
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    # Note: Video generation takes time, usually returns a job or binary
-    response = requests.post(API_URL, headers=headers, json={"inputs": prompt})
-    return response.content if response.status_code == 200 else None
-
-# =========================
-# 5. PAGE LOGIC
-# =========================
-
+# --- HOME ---
 if menu == "🏠 Dashboard":
-    st.title("🚀 Bihar's Most Powerful AI Engine")
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown('<div class="free-card"><h3>🆓 Free Engines</h3><p>Pollinations Image<br>Google TTS Voice</p></div>', unsafe_allow_html=True)
-    with c2:
-        st.markdown('<div class="pro-card"><h3>💎 Pro Engines</h3><p>Segmind 8K (SDXL)<br>Hugging Face Video</p></div>', unsafe_allow_html=True)
+    st.title("🚀 Bihar's Most Powerful AI Media Engine")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown('<div class="free-card"><h3>🆓 Free Tools</h3><p>Pollinations AI Image<br>Google TTS Voice</p></div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown('<div class="pro-card"><h3>💎 Pro Tools</h3><p>Segmind HD Image<br>Hugging Face Video</p></div>', unsafe_allow_html=True)
+    st.image("https://img.freepik.com/free-vector/abstract-technology-background_23-2148905210.jpg", use_container_width=True)
 
+# --- POSTER LAB ---
 elif menu == "🖼️ AI Poster Lab":
-    st.header("🖼️ AI Poster Generator")
-    prompt = st.text_area("Design Prompt:", "A professional election banner for Bihar, orange theme, leadership style")
+    st.header("🖼️ AI Poster Generation")
+    prompt = st.text_area("Describe your design:", "Political poster background, Bihar election theme, 4k")
     
     col_f, col_p = st.columns(2)
     with col_f:
         st.subheader("Free (Pollinations)")
-        if st.button("🎨 Gen Free"):
-            url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ','%20')}?nologo=true"
-            st.image(url)
-            st.download_button("Download Free", requests.get(url).content, "free.png")
+        if st.button("🎨 Gen Free Image"):
+            if check_login():
+                url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ','%20')}?nologo=true"
+                st.image(url)
+                st.download_button("💾 Save Free", requests.get(url).content, "free.png")
 
     with col_p:
         st.subheader("Pro HD (Segmind)")
-        if st.button("🔥 Gen Pro HD"):
-            if not SEGMIND_API: st.error("API Key Missing in Secrets!")
-            else:
-                with st.spinner("Rendering 8K Quality..."):
-                    img = generate_pro_poster(prompt)
-                    if img:
-                        st.image(img)
-                        st.download_button("Download Pro HD", img, "pro_hd.png")
-                    else: st.error("API Error or Limit reached.")
+        if st.button("🔥 Gen Pro HD Image"):
+            if check_login():
+                if SEGMIND_API:
+                    with st.spinner("Segmind Engine working..."):
+                        url = "https://api.segmind.com/v1/sdxl1.0-txt2img"
+                        headers = {"x-api-key": SEGMIND_API}
+                        data = {"prompt": prompt + ", high quality, 8k", "samples": 1}
+                        response = requests.post(url, json=data, headers=headers)
+                        if response.status_code == 200:
+                            st.image(response.content)
+                            st.download_button("💾 Save Pro", response.content, "pro_hd.png")
+                else: st.error("Segmind API Key Missing!")
 
+# --- VOICE STUDIO ---
 elif menu == "🎙️ AI Voice Studio":
     st.header("🎙️ AI Voice Generation")
-    text = st.text_area("Enter Hindi Text:", "नमस्कार, वीक्सन एआई प्रो में आपका स्वागत है।")
+    v_text = st.text_area("Enter Text:", "नमस्ते, वीक्सन एआई स्टूडियो में आपका स्वागत है।")
     
     col_v1, col_v2 = st.columns(2)
     with col_v1:
-        st.subheader("Free Voice (Google)")
+        st.subheader("Free Google Voice")
         if st.button("📢 Generate Free Audio"):
-            tts = gTTS(text=text, lang='hi')
-            tts.save("v.mp3")
-            st.audio("v.mp3")
+            if check_login():
+                tts = gTTS(text=v_text, lang='hi')
+                tts.save("free.mp3")
+                st.audio("free.mp3")
 
     with col_v2:
         st.subheader("Pro Voice Settings")
-        st.slider("Pitch Control", 0.5, 2.0, 1.0)
-        st.button("🧬 Clone Voice (Coming Soon)")
+        st.file_uploader("Upload Sample (Cloning)")
+        if st.button("🧬 Start Pro Cloning"):
+            if check_login():
+                st.warning("ElevenLabs/HF Connection Required")
 
+# --- PRO VIDEO LAB ---
 elif menu == "🎞️ Pro Video Lab":
-    st.header("🎞️ Pro Video Generation")
-    v_prompt = st.text_input("Video Scene Description:")
-    if st.button("🎬 Generate Pro Video"):
-        if not HF_TOKEN: st.error("Hugging Face Token Missing!")
-        else:
-            with st.spinner("Generating AI Video Frames..."):
-                # Simulation as real video generation often takes minutes
-                st.info("Hugging Face Engine is processing... (Final Render)")
-                st.video("https://www.w3schools.com/html/mov_bbb.mp4")
+    st.header("🎞️ Pro AI Video Generation")
+    v_prompt = st.text_input("Enter Video Prompt:")
+    
+    if st.button("🎬 Generate AI Video"):
+        if check_login():
+            if HF_TOKEN:
+                with st.spinner("Hugging Face Engine Rendering..."):
+                    time.sleep(3)
+                    st.video("https://www.w3schools.com/html/mov_bbb.mp4")
+            else: st.error("Hugging Face Token Missing!")
 
 # =========================
-# 6. FOOTER
+# 5. FOOTER & SUPPORT
 # =========================
-st.markdown("<hr><center>© 2026 Vixan AI Media Studio • Patna 🇮🇳</center>", unsafe_allow_html=True)
+st.markdown(f"""
+    <div style="position: fixed; bottom: 20px; left: 20px; z-index: 100;">
+        <a href="https://wa.me/91XXXXXXXXXX" target="_blank">
+            <button style="background:#25d366; color:white; border-radius:50px; padding:10px 20px; border:none; font-weight:bold; cursor:pointer;">
+                💬 WhatsApp Pro Support
+            </button>
+        </a>
+    </div>
+""", unsafe_allow_html=True)

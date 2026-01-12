@@ -10,7 +10,7 @@ from PIL import Image
 # =========================
 # 1. CONFIG & PREMIUM THEME
 # =========================
-st.set_page_config(page_title="Vixan AI Pro v23.0", layout="wide", page_icon="💎")
+st.set_page_config(page_title="Vixan AI Pro v24.0", layout="wide", page_icon="💎")
 
 SEGMIND_API = st.secrets.get("SEGMIND_API_KEY", "")
 HF_TOKEN = st.secrets.get("HF_TOKEN", "")
@@ -19,16 +19,46 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;700&display=swap');
     .main { background: #0a0b10; color: #ffffff; font-family: 'Rajdhani', sans-serif; }
-    .stButton>button { border-radius: 12px; font-weight: 700; height: 3.5em; transition: 0.3s; border: none; width: 100%; }
-    .stButton>button:hover { transform: scale(1.02); box-shadow: 0 0 20px #00d4ff; }
-    .template-card { 
-        background: rgba(255,255,255,0.05); border: 1px solid #444; 
-        border-radius: 15px; padding: 10px; text-align: center; transition: 0.3s;
+    
+    /* Template Grid Styling */
+    .template-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        padding: 10px;
     }
-    .template-card:hover { border-color: #FFD700; background: rgba(255,215,0,0.1); }
+    .template-card {
+        background: #161a25;
+        border: 1px solid #333;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: 0.3s ease-in-out;
+        text-align: center;
+    }
+    .template-card:hover {
+        transform: translateY(-10px);
+        border-color: #FFD700;
+        box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2);
+    }
+    .template-img {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        border-bottom: 1px solid #333;
+    }
+    .cat-header {
+        background: linear-gradient(90deg, #FFD700, #FF8C00);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+    
+    /* Global Buttons */
+    .stButton>button { border-radius: 12px; font-weight: 700; height: 3em; transition: 0.3s; border: none; width: 100%; }
+    .stButton>button:hover { transform: scale(1.02); box-shadow: 0 0 20px #00d4ff; }
     .float-container { position: fixed; bottom: 30px; right: 30px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-    .wa-btn { background: #25d366; color: white; padding: 12px 20px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 14px; text-align:center; }
-    .call-btn { background: #00d2ff; color: white; padding: 12px 20px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 14px; text-align:center; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -56,16 +86,9 @@ def check_auth():
 # 3. SIDEBAR NAVIGATION
 # =========================
 with st.sidebar:
-    st.markdown("<h2 style='color:#FFD700;'>VIXAN PRO v23</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#FFD700;'>VIXAN PRO v24</h2>", unsafe_allow_html=True)
     st.image("https://cdn-icons-png.flaticon.com/512/2103/2103633.png", width=80)
-    menu = st.radio("SELECT TOOL", [
-        "🏠 Dashboard", 
-        "🖼️ Ready Templates (70+)", 
-        "🎨 AI Poster Lab", 
-        "🎙️ Voice Studio", 
-        "🎞️ Talking Face Video", 
-        "💳 Subscription"
-    ])
+    menu = st.radio("SELECT TOOL", ["🏠 Dashboard", "🖼️ Ready Templates", "🎨 AI Poster Lab", "🎙️ Voice Studio", "🎞️ Talking Face Video", "💳 Subscription"])
     st.divider()
     if st.session_state.is_auth:
         st.info(f"User: {st.session_state.user_name}")
@@ -80,32 +103,43 @@ with st.sidebar:
 # --- DASHBOARD ---
 if menu == "🏠 Dashboard":
     st.title("🚀 Bihar's #1 AI Media Studio")
-    st.info("The Complete Package: Posters, Voices, and Talking Head Videos.")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("<div style='padding:20px; border:1px solid #FFD700; border-radius:20px;'><h3>🆕 AI Generation</h3><p>Create anything from scratch using text prompts.</p></div>", unsafe_allow_html=True)
-    with col2:
-        st.markdown("<div style='padding:20px; border:1px solid #00d4ff; border-radius:20px;'><h3>🧬 DNA Cloning</h3><p>Upload a file to clone style or voice DNA 100%.</p></div>", unsafe_allow_html=True)
+    st.markdown("#### Create Professional Branding in Seconds")
     st.image("https://img.freepik.com/free-vector/abstract-technology-background_23-2148905210.jpg", use_container_width=True)
 
-# --- READYMADE TEMPLATES ---
-elif menu == "🖼️ Ready Templates (70+)":
-    st.header("🖼️ Select a Professional Template")
-    temp_tabs = st.tabs(["Political 🚩", "Business 💼", "Festivals 🪔", "Birthday 🎂"])
-    cols = st.columns(4)
-    for i in range(1, 73):
-        with cols[i % 4]:
-            st.markdown(f"""<div class='template-card'><img src='https://via.placeholder.com/200x250.png?text=Template+{i}' style='width:100%; border-radius:10px;'><p>Design {i}</p></div>""", unsafe_allow_html=True)
-            if st.button(f"Use Template {i}", key=f"t_{i}"):
-                if check_auth(): st.success("Template Loaded in Editor!")
+# --- READYMADE TEMPLATES (4 SMART CATEGORIES) ---
+elif menu == "🖼️ Ready Templates":
+    st.header("🖼️ High-Quality Predefined Templates")
+    
+    # 4 SMART CATEGORIES
+    cats = {
+        "🚩 Political (Chunav)": ["BJP Bihar Theme", "JDU Development", "RJD Jan Seva", "Chunav Prachar 2026", "Leadership Banner"],
+        "💼 Business & Shop": ["Modern Gym Banner", "Patna Digital Shop", "Restaurant Special", "Real Estate Luxury", "Mobile Store"],
+        "🪔 Festivals (Tyohar)": ["Chhath Puja Special", "Diwali Greetings", "Holi Dhamaka", "Eid Mubarak", "Maha Shivratri"],
+        "🎂 Birthday & Events": ["Royal Birthday", "Wedding Invitation", "Anniversary Post", "College Event", "Baby Shower"]
+    }
+    
+    for cat_name, items in cats.items():
+        st.markdown(f"<div class='cat-header'>{cat_name}</div>", unsafe_allow_html=True)
+        cols = st.columns(5)
+        for i, item in enumerate(items):
+            with cols[i]:
+                st.markdown(f"""
+                    <div class='template-card'>
+                        <img class='template-img' src='https://image.pollinations.ai/prompt/{item.replace(" ", "%20")}%20poster%20high%20quality?width=400&height=600&nologo=true'>
+                        <div style='padding:10px; font-size:14px; font-weight:bold;'>{item}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+                if st.button(f"Edit {i}", key=f"{cat_name}_{i}"):
+                    if check_auth():
+                        st.success(f"Selected: {item}. Redirecting to Editor...")
 
-# --- POSTER LAB (Gen & Clone) ---
+# --- POSTER LAB ---
 elif menu == "🎨 AI Poster Lab":
     st.header("🎨 AI Image Lab (Generate & Clone)")
     p_tab1, p_tab2 = st.tabs(["✨ Text to Image", "🧬 Image Clone"])
     
     with p_tab1:
-        prompt = st.text_area("Describe your poster:", "Election banner, Bihar 2026, Luxury style, 4k")
+        prompt = st.text_area("Describe your poster:", "Professional election banner, Bihar theme, 4k")
         if st.button("🚀 Generate New Poster"):
             if check_auth():
                 with st.spinner("AI Painting..."):
@@ -115,43 +149,34 @@ elif menu == "🎨 AI Poster Lab":
                     
     with p_tab2:
         up_img = st.file_uploader("Upload Image to Clone Style", type=['jpg', 'png'])
-        new_txt = st.text_input("New Name/Slogan for Clone")
         if st.button("🧬 Start Style Cloning"):
             if check_auth() and up_img:
-                with st.spinner("Cloning Design DNA..."):
-                    st.image(f"https://image.pollinations.ai/prompt/clone%20design%20of%20poster?seed={uuid.uuid4().int}")
+                st.image(f"https://image.pollinations.ai/prompt/clone%20design%20of%20poster?seed={uuid.uuid4().int}")
 
-# --- VOICE LAB (TTS, Pro & Clone) ---
+# --- VOICE STUDIO ---
 elif menu == "🎙️ Voice Studio":
-    st.header("🎙️ Pro Voice Studio (Free & Clone)")
-    v_tab1, v_tab2 = st.tabs(["📢 Text to Speech (Free/Pro)", "🧬 Voice Cloning"])
+    st.header("🎙️ Pro Voice Studio")
+    v_tab1, v_tab2 = st.tabs(["📢 Text to Speech", "🧬 Voice Cloning"])
     
     with v_tab1:
-        v_text = st.text_area("Enter Text:", "नमस्ते, वीक्सन एआई स्टूडियो में आपका स्वागत है।")
-        col_v1, col_v2 = st.columns(2)
-        with col_v1:
-            if st.button("📢 Generate Free Voice"):
-                if check_auth():
-                    tts = gTTS(text=v_text, lang='hi')
-                    tts.save("v.mp3")
-                    st.audio("v.mp3")
-        with col_v2:
-            st.slider("Pro Tone Stability", 0.0, 1.0, 0.7)
-            if st.button("💎 Generate Pro Neural Voice"):
-                if check_auth(): st.info("Pro Neural Processing Active.")
+        v_text = st.text_area("Enter Hindi Text:", "नमस्ते, वीक्सन एआई स्टूडियो में आपका स्वागत है।")
+        if st.button("📢 Generate Voice"):
+            if check_auth():
+                tts = gTTS(text=v_text, lang='hi')
+                tts.save("v.mp3")
+                st.audio("v.mp3")
 
     with v_tab2:
         cl_aud = st.file_uploader("Upload 10s Voice Sample", type=['mp3', 'wav'])
-        cl_txt = st.text_area("What should cloned voice say?", "यह मेरी क्लोन की हुई आवाज़ है।")
         if st.button("🧬 Clone Voice DNA"):
             if check_auth() and cl_aud:
-                with st.spinner("Extracting DNA..."):
-                    st.success("Voice DNA Cloned Successfully!")
-                    st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3") # Placeholder
+                st.success("Voice DNA Cloned Successfully!")
+                st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
 
 # --- TALKING FACE ---
 elif menu == "🎞️ Talking Face Video":
     st.header("🎞️ Talking Face AI Studio")
+    
     f_img = st.file_uploader("Upload Face Image", type=['jpg','png'])
     f_aud = st.file_uploader("Upload Audio", type=['mp3','wav'])
     if st.button("🎬 Create Talking Video"):

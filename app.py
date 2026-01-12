@@ -7,156 +7,162 @@ from gtts import gTTS
 from PIL import Image, ImageDraw, ImageFont
 
 # =========================
-# 1. PAGE SETUP & PREMIUM THEME
+# 1. INITIAL SETUP & THEME
 # =========================
-st.set_page_config(page_title="Vixan AI Pro v10.0", layout="wide", page_icon="🚀")
+st.set_page_config(page_title="Vixan AI Pro v11.0", layout="wide", page_icon="🚀")
 
-# Ultra-Smooth Neon UI
+# Premium Neon Gradient Theme
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap');
+    
     html, body, [class*="css"] { font-family: 'Rajdhani', sans-serif; }
-    .main { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white; }
+    .main { background: linear-gradient(135deg, #020111 0%, #050625 100%); color: white; }
+    
+    /* Neon Glow Cards */
+    .tool-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(0, 210, 255, 0.3);
+        border-radius: 20px; padding: 20px; transition: 0.3s;
+        text-align: center; box-shadow: 0 0 15px rgba(0, 210, 255, 0.1);
+    }
+    .tool-card:hover { transform: translateY(-5px); border-color: #00d2ff; box-shadow: 0 0 25px rgba(0, 210, 255, 0.3); }
+    
+    /* Premium Buttons */
     .stButton>button {
         background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
-        color: white; border-radius: 50px; border: none; font-weight: bold;
-        transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        color: white; border-radius: 12px; border: none; font-weight: bold;
+        padding: 10px 25px; transition: 0.4s; width: 100%;
     }
-    .stButton>button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,210,255,0.5); }
-    .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); }
-    .support-float { position: fixed; bottom: 20px; right: 20px; z-index: 100; }
+    .stButton>button:hover { letter-spacing: 2px; box-shadow: 0 0 20px #00d2ff; }
+    
+    /* Support Floating Buttons */
+    .support-float { position: fixed; bottom: 30px; left: 30px; z-index: 100; display: flex; flex-direction: column; gap: 15px; }
     </style>
     """, unsafe_allow_html=True)
 
-# =========================
-# 2. LOGIN SYSTEM (Session State)
-# =========================
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
+# Session State for User Authentication
+if 'is_authenticated' not in st.session_state:
+    st.session_state.is_authenticated = False
 
-if not st.session_state.logged_in:
-    with st.container():
-        st.markdown("<div class='glass-card' style='max-width:400px; margin:auto; margin-top:100px;'>", unsafe_allow_html=True)
-        st.title("🔐 User Access")
-        name = st.text_input("Full Name")
-        phone = st.text_input("WhatsApp Number")
-        if st.button("Start AI Magic ✨"):
+# =========================
+# 2. LOGIN MODAL FUNCTION
+# =========================
+def show_login_popup():
+    st.warning("🔒 Action Required: Please Signup to continue.")
+    with st.expander("📝 Sign Up / Login to Vixan AI", expanded=True):
+        name = st.text_input("Enter Full Name")
+        phone = st.text_input("Enter WhatsApp Number")
+        if st.button("Unlock AI Features ✨"):
             if name and len(phone) >= 10:
-                st.session_state.logged_in = True
+                st.session_state.is_authenticated = True
                 st.session_state.user_name = name
+                st.success(f"Welcome {name}! Features Unlocked.")
                 st.rerun()
             else:
-                st.error("Please enter valid details")
-        st.markdown("</div>", unsafe_allow_html=True)
-    st.stop()
+                st.error("Please provide valid details.")
 
 # =========================
-# 3. SIDEBAR & MENU
+# 3. SIDEBAR NAVIGATION
 # =========================
 with st.sidebar:
-    st.markdown(f"### Welcome, {st.session_state.user_name} 👋")
-    st.image("https://cdn-icons-png.flaticon.com/512/2103/2103633.png", width=80)
-    menu = st.radio("Explore Tools", ["🏠 Home", "🖼️ AI Poster Lab", "🎙️ Voice & Clone", "🎞️ Video Clone", "ℹ️ About & Legal"])
+    st.markdown("<h2 style='color:#00d2ff;'>VIXAN STUDIO</h2>", unsafe_allow_html=True)
+    st.image("https://cdn-icons-png.flaticon.com/512/2103/2103633.png", width=100)
+    menu = st.radio("MAIN MENU", ["🏠 Home Dashboard", "🖼️ AI Poster Lab", "🎙️ Pro Voice Studio", "🎞️ Video Center", "ℹ️ About & Support"])
     st.divider()
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
+    if st.session_state.is_authenticated:
+        st.write(f"Logged in as: **{st.session_state.user_name}**")
+        if st.button("Logout"):
+            st.session_state.is_authenticated = False
+            st.rerun()
 
 # =========================
-# 4. HOME DASHBOARD
+# 4. MODULES
 # =========================
-if menu == "🏠 Home":
-    st.title(f"🚀 Vixan AI Media Studio Pro")
-    st.markdown("#### Bihar's Most Powerful AI Engine for Digital Branding")
+
+# --- HOME ---
+if menu == "🏠 Home Dashboard":
+    st.title("🚀 Bihar's Leading AI Media Engine")
+    st.markdown("#### High-End Graphics & AI Voices for Leaders & Brands")
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown("<div class='glass-card'>🖼️ <b>Poster Lab</b><br>Create HD Designs in 10 sec</div>", unsafe_allow_html=True)
+        st.markdown("<div class='tool-card'><h3>🖼️</h3><h4>Poster Lab</h4><p>HD AI Graphics in seconds</p></div>", unsafe_allow_html=True)
     with col2:
-        st.markdown("<div class='glass-card'>🎙️ <b>Voice Studio</b><br>Human-like AI Voices</div>", unsafe_allow_html=True)
+        st.markdown("<div class='tool-card'><h3>🎙️</h3><h4>Voice Studio</h4><p>Professional Human-like AI</p></div>", unsafe_allow_html=True)
     with col3:
-        st.markdown("<div class='glass-card'>🎞️ <b>Video Clone</b><br>Talking AI Posters</div>", unsafe_allow_html=True)
-
+        st.markdown("<div class='tool-card'><h3>🎞️</h3><h4>Video Magic</h4><p>Talking Posters & Animation</p></div>", unsafe_allow_html=True)
+    
     st.image("https://img.freepik.com/free-vector/abstract-technology-background_23-2148905210.jpg", use_container_width=True)
 
-# =========================
-# 5. POSTER LAB (Free/Pro + Font Selection)
-# =========================
+# --- POSTER LAB ---
 elif menu == "🖼️ AI Poster Lab":
-    st.header("🖼️ Professional Poster Generator")
-    mode = st.toggle("Switch to Pro (Segmind API Required)", value=False)
+    st.header("🖼️ AI Poster Generation Lab")
     
     col_in, col_pre = st.columns([1, 1.2])
     with col_in:
-        l_name = st.text_input("Name on Poster", "आपका नाम यहाँ")
-        l_slogan = st.text_input("Slogan", "नया बिहार, नई पहचान")
-        
+        name = st.text_input("Leader/Brand Name", "आपका नाम यहाँ")
+        slogan = st.text_input("Hindi Slogan", "नया बिहार, नई पहचान")
         font_dir = "fonts"
         fonts = [f for f in os.listdir(font_dir) if f.endswith(".ttf")] if os.path.exists(font_dir) else ["Default"]
-        sel_font = st.selectbox("Select Font Style", fonts)
+        sel_font = st.selectbox("Select Premium Font", fonts)
+        prompt = st.text_area("Background Style", "Professional political banner, orange and gold theme, 4k")
         
-        prompt = st.text_area("Background Prompt", "Political banner background, luxury orange and gold theme, 4k")
-        
-        gen_btn = st.button("Generate & Process Design")
+        # Generation Logic with Auth Check
+        if st.button("🎨 Generate Design Now"):
+            if not st.session_state.is_authenticated:
+                show_login_popup()
+            else:
+                with st.spinner("AI Generating..."):
+                    img_url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ','%20')}?width=1024&height=1024&nologo=true"
+                    img_data = requests.get(img_url).content
+                    st.session_state.last_image = img_data
+                    st.image(img_data, caption="Generated Preview", use_container_width=True)
+                    st.download_button("📥 Download HD Poster", img_data, "vixan_poster.png")
 
-    with col_pre:
-        if gen_btn:
-            with st.spinner("AI Working..."):
-                # FREE Image Generation (Pollinations)
-                img_url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ','%20')}?width=1024&height=1024&nologo=true"
-                img_data = requests.get(img_url).content
-                st.image(img_data, caption="Design Preview", use_container_width=True)
-                st.download_button("📥 Download Design", img_data, "vixan_poster.png")
-
-# =========================
-# 6. VOICE CLONE & SETTINGS
-# =========================
-elif menu == "🎙️ Voice & Clone":
-    st.header("🎙️ Advanced Voice Lab")
-    text_in = st.text_area("Write Text", "नमस्ते, वीक्सन स्टूडियो में आपका स्वागत है।")
+# --- VOICE STUDIO ---
+elif menu == "🎙️ Pro Voice Studio":
+    st.header("🎙️ Advanced AI Voice Lab")
+    text_in = st.text_area("Enter Text (Hindi/English)", "नमस्ते, वीक्सन डिजिटल स्टूडियो में आपका स्वागत है।")
     
-    c1, c2 = st.columns(2)
+    st.subheader("⚙️ Voice Tuning Settings")
+    c1, c2, c3 = st.columns(3)
     with c1:
-        st.subheader("Free Engine (Google)")
-        v_speed = st.slider("Speech Speed", 0.5, 2.0, 1.0)
-        if st.button("Generate Free Audio"):
-            tts = gTTS(text=text_in, lang='hi', slow=(v_speed < 1.0))
-            tts.save("v.mp3")
-            st.audio("v.mp3")
-    
+        v_speed = st.slider("Speech Rate (Speed)", 0.5, 2.0, 1.0)
     with c2:
-        st.subheader("Clone Engine (Pro)")
-        st.file_uploader("Upload Voice for Cloning (10s sample)")
-        st.button("🧬 Start Cloning")
+        v_pitch = st.slider("Pitch Control", -10, 10, 0)
+    with c3:
+        v_stability = st.slider("Tone Stability", 0.0, 1.0, 0.7)
+
+    if st.button("📢 Generate Professional Voice"):
+        if not st.session_state.is_authenticated:
+            show_login_popup()
+        else:
+            with st.spinner("Processing High Quality Voice..."):
+                tts = gTTS(text=text_in, lang='hi', slow=(v_speed < 1.0))
+                tts.save("voice_out.mp3")
+                st.audio("voice_out.mp3")
+                with open("voice_out.mp3", "rb") as f:
+                    st.download_button("📥 Download MP3 Audio", f, "vixan_audio.mp3")
+
+# --- VIDEO CENTER ---
+elif menu == "🎞️ Video Center":
+    st.header("🎞️ Talking Poster - Video Center")
+    st.info("Coming Soon: AI Video Lip-Sync for Posters")
+    st.video("https://www.w3schools.com/html/mov_bbb.mp4")
 
 # =========================
-# 7. ABOUT & DISCLAIMER
-# =========================
-elif menu == "ℹ️ About & Legal":
-    st.title("ℹ️ Information Center")
-    st.markdown("""
-    ### 👨‍💻 About Me
-    Vixan AI is developed by **Patna AI Studio**, Bihar's leader in generative AI technology. Our mission is to empower local businesses and leaders with world-class branding tools.
-    
-    ### ⚠️ Disclaimer
-    * This AI tool is for creative branding only.
-    * Do not use for creating fake news or deepfakes of political figures.
-    * The developer is not responsible for misused content.
-    """)
-
-# =========================
-# 8. FLOATING SUPPORT
+# 5. FLOATING SUPPORT (Locked to User)
 # =========================
 st.markdown(f"""
     <div class="support-float">
-        <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20Vixan%20Support,%20I%20need%20help." target="_blank">
-            <button style="background:#25d366; color:white; border-radius:50px; padding:10px 20px; border:none; font-weight:bold;">
-                💬 WhatsApp Support
+        <a href="https://wa.me/91XXXXXXXXXX?text=VixanAI%20Support" target="_blank">
+            <button style="background:#25d366; color:white; border-radius:30px; padding:12px; border:none; cursor:pointer; width:180px; font-weight:bold;">
+                💬 WhatsApp Chat
             </button>
         </a>
-        <br><br>
         <a href="tel:+91XXXXXXXXXX">
-            <button style="background:#007bff; color:white; border-radius:50px; padding:10px 20px; border:none; font-weight:bold;">
+            <button style="background:#00d2ff; color:white; border-radius:30px; padding:12px; border:none; cursor:pointer; width:180px; font-weight:bold;">
                 📞 Call Developer
             </button>
         </a>
